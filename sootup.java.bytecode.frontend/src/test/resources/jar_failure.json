@@ -1,0 +1,20 @@
+[
+{
+  "jar_name": "GDXseer-1.0.3.jar",
+  "exception": "Failed to apply sootup.interceptors.NopEliminator@330d557e to <io.github.niraj_rayalla.gdxseer.loader.EffekseerParticleAssetLoader$Companion: io.github.niraj_rayalla.gdxseer.loader.EffekseerParticleSubAssetLoader$Companion$Result getCachedAssetInLoaderOrAssetManager(com.badlogic.gdx.assets.AssetManager,java.lang.String)>",
+  "download_url": "https://repo1.maven.org/maven2/io/github/niraj-rayalla/GDXseer/1.0.3/GDXseer-1.0.3.jar",
+  "failedMethodSignature": "<io.github.niraj_rayalla.gdxseer.loader.EffekseerParticleAssetLoader$Companion: io.github.niraj_rayalla.gdxseer.loader.EffekseerParticleSubAssetLoader$Companion$Result getCachedAssetInLoaderOrAssetManager(com.badlogic.gdx.assets.AssetManager,java.lang.String)>"
+},
+{
+  "jar_name": "http4k-connect-amazon-instancemetadata-fake-5.25.0.0.jar",
+  "exception": "Failed to convert <org.http4k.connect.amazon.instancemetadata.InstanceMetadata: org.http4k.connect.amazon.instancemetadata.model.Ec2Credentials getCredentials(org.http4k.connect.amazon.core.model.Ec2ProfileName,java.time.ZonedDateTime)>",
+  "download_url": "https://repo1.maven.org/maven2/org/http4k/http4k-connect-amazon-instancemetadata-fake/5.25.0.0/http4k-connect-amazon-instancemetadata-fake-5.25.0.0.jar",
+  "failedMethodSignature": "<org.http4k.connect.amazon.instancemetadata.InstanceMetadata: org.http4k.connect.amazon.instancemetadata.model.Ec2Credentials getCredentials(org.http4k.connect.amazon.core.model.Ec2ProfileName,java.time.ZonedDateTime)>"
+},
+{
+  "jar_name": "id-sdk-impl-0.0.1.jar",
+  "exception": "Failed to apply sootup.interceptors.NopEliminator@6ae5e1cf to <cn.teleinfo.idhub.sdk.utils.KeyConverter: java.security.PrivateKey privateKeyFromBytes(byte[],boolean,java.lang.String)>",
+  "download_url": "https://repo1.maven.org/maven2/cn/teleinfo/id-sdk-impl/0.0.1/id-sdk-impl-0.0.1.jar",
+  "failedMethodSignature": "<cn.teleinfo.idhub.sdk.utils.KeyConverter: java.security.PrivateKey privateKeyFromBytes(byte[],boolean,java.lang.String)>"
+}
+]
