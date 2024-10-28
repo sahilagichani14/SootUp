@@ -47,7 +47,7 @@ public class DominanceTree {
     }
 
     for (int i = 0; i < treeSize; i++) {
-      if (iDoms[i] != i) {
+      if (iDoms[i] != -1 && iDoms[i] != i) {
         parents[i] = iDoms[i];
         children[iDoms[i]].add(i);
       }
