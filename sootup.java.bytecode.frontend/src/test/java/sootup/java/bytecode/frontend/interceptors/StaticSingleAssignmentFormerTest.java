@@ -12,10 +12,7 @@ import sootup.core.jimple.basic.Local;
 import sootup.core.jimple.basic.StmtPositionInfo;
 import sootup.core.jimple.common.constant.IntConstant;
 import sootup.core.jimple.common.ref.IdentityRef;
-import sootup.core.jimple.common.stmt.BranchingStmt;
-import sootup.core.jimple.common.stmt.FallsThroughStmt;
-import sootup.core.jimple.common.stmt.JGotoStmt;
-import sootup.core.jimple.common.stmt.Stmt;
+import sootup.core.jimple.common.stmt.*;
 import sootup.core.model.Body;
 import sootup.core.signatures.MethodSignature;
 import sootup.core.types.ClassType;
@@ -53,38 +50,40 @@ public class StaticSingleAssignmentFormerTest {
   Local l3 = JavaJimple.newLocal("l3", intType);
   Local stack4 = JavaJimple.newLocal("stack4", refType);
 
-  Stmt startingStmt = JavaJimple.newIdentityStmt(l0, identityRef, noStmtPositionInfo);
-  Stmt assign1tol1 = JavaJimple.newAssignStmt(l1, IntConstant.getInstance(1), noStmtPositionInfo);
-  Stmt assign1tol2 = JavaJimple.newAssignStmt(l2, IntConstant.getInstance(1), noStmtPositionInfo);
-  Stmt assign0tol3 = JavaJimple.newAssignStmt(l3, IntConstant.getInstance(0), noStmtPositionInfo);
+  JIdentityStmt startingStmt = JavaJimple.newIdentityStmt(l0, identityRef, noStmtPositionInfo);
+  JAssignStmt assign1tol1 = JavaJimple.newAssignStmt(l1, IntConstant.getInstance(1), noStmtPositionInfo);
+  JAssignStmt assign1tol2 = JavaJimple.newAssignStmt(l2, IntConstant.getInstance(1), noStmtPositionInfo);
+  JAssignStmt assign0tol3 = JavaJimple.newAssignStmt(l3, IntConstant.getInstance(0), noStmtPositionInfo);
   BranchingStmt ifStmt =
       JavaJimple.newIfStmt(
           JavaJimple.newLtExpr(l3, IntConstant.getInstance(100)), noStmtPositionInfo);
   BranchingStmt ifStmt2 =
       JavaJimple.newIfStmt(
           JavaJimple.newLtExpr(l2, IntConstant.getInstance(20)), noStmtPositionInfo);
-  Stmt returnStmt = JavaJimple.newReturnStmt(l2, noStmtPositionInfo);
-  Stmt assignl1tol2 = JavaJimple.newAssignStmt(l2, l1, noStmtPositionInfo);
-  Stmt assignl3plus1tol3 =
+  JReturnStmt returnStmt = JavaJimple.newReturnStmt(l2, noStmtPositionInfo);
+  JAssignStmt assignl1tol2 = JavaJimple.newAssignStmt(l2, l1, noStmtPositionInfo);
+  JAssignStmt assignl3plus1tol3 =
       JavaJimple.newAssignStmt(
           l3, JavaJimple.newAddExpr(l3, IntConstant.getInstance(1)), noStmtPositionInfo);
-  Stmt assignl3tol2 = JavaJimple.newAssignStmt(l2, l3, noStmtPositionInfo);
-  Stmt assignl3plus2tol3 =
+  JAssignStmt assignl3tol2 = JavaJimple.newAssignStmt(l2, l3, noStmtPositionInfo);
+  JAssignStmt assignl3plus2tol3 =
       JavaJimple.newAssignStmt(
           l3, JavaJimple.newAddExpr(l3, IntConstant.getInstance(2)), noStmtPositionInfo);
-  BranchingStmt gotoStmt = JavaJimple.newGotoStmt(noStmtPositionInfo);
+  JGotoStmt gotoStmt1 = JavaJimple.newGotoStmt(noStmtPositionInfo);
+  JGotoStmt gotoStmt2 = JavaJimple.newGotoStmt(noStmtPositionInfo);
 
   FallsThroughStmt handlerStmt =
       JavaJimple.newIdentityStmt(stack4, caughtExceptionRef, noStmtPositionInfo);
   FallsThroughStmt l2eq0 =
       JavaJimple.newAssignStmt(l2, IntConstant.getInstance(0), noStmtPositionInfo);
-  BranchingStmt goTo = JavaJimple.newGotoStmt(noStmtPositionInfo);
+  JGotoStmt goTo = JavaJimple.newGotoStmt(noStmtPositionInfo);
 
   @Test
   public void testSSA() {
     StaticSingleAssignmentFormer ssa = new StaticSingleAssignmentFormer();
     Body.BodyBuilder builder = createBody();
     ssa.interceptBody(builder, new JavaView(Collections.emptyList()));
+    System.out.println(builder.build());
 
     String expectedBodyString =
         "{\n"
@@ -203,20 +202,54 @@ public class StaticSingleAssignmentFormerTest {
    *    l2 = 1
    *    l3 = 0
    * label1:
-   *    if l3 < 100 goto label3
-   *    if l2 < 20 goto label 2
-   *    l2 = l1
-   *    l3 = l3 + 1
-   *    goto label1;
+   *    if l3 < 100 goto label2
+   *    return l2
    * label2:
+   *    if l2 < 20 goto label3
    *    l2 = l3
    *    l3 = l3 + 2
+   *    goto label4;
    * label3:
-   *    return l2
+   *    l2 = l1
+   *    l3 = l3 + 1
+   *    goto label4
+   * label3:
+   *    goto label1
    * </pre>
    */
   private Body.BodyBuilder createBody() {
     MutableBlockStmtGraph graph = new MutableBlockStmtGraph();
+
+    //Block0
+    graph.setStartingStmt(startingStmt);
+    graph.putEdge(startingStmt, assign1tol1);
+    graph.putEdge(assign1tol1, assign1tol2);
+    graph.putEdge(assign1tol2, assign0tol3);
+
+    //block1
+    graph.putEdge(assign0tol3, ifStmt);
+
+    //block2
+    graph.putEdge(ifStmt,JIfStmt.TRUE_BRANCH_IDX,  ifStmt2);
+
+    //block3
+    graph.putEdge(ifStmt,JIfStmt.FALSE_BRANCH_IDX,  returnStmt);
+
+    //block4
+    graph.putEdge(ifStmt2, JIfStmt.TRUE_BRANCH_IDX, assignl1tol2);
+    graph.putEdge(assignl1tol2, assignl3plus1tol3);
+    graph.putEdge(assignl3plus1tol3, gotoStmt1);
+
+    //block 5
+    graph.putEdge(ifStmt2, JIfStmt.FALSE_BRANCH_IDX, assignl3tol2);
+    graph.putEdge(assignl3tol2, assignl3plus2tol3);
+    graph.putEdge(assignl3plus2tol3, gotoStmt2);
+
+    //block 6
+    graph.putEdge(gotoStmt1, JGotoStmt.BRANCH_IDX, goTo);
+    graph.putEdge(gotoStmt2, JGotoStmt.BRANCH_IDX, goTo);
+    graph.putEdge(goTo, JGotoStmt.BRANCH_IDX, ifStmt);
+
     Body.BodyBuilder builder = Body.builder(graph);
     builder.setMethodSignature(methodSignature);
 
@@ -224,19 +257,22 @@ public class StaticSingleAssignmentFormerTest {
     Set<Local> locals = ImmutableUtils.immutableSet(l0, l1, l2, l3);
     builder.setLocals(locals);
 
-    Map<BranchingStmt, List<Stmt>> successorMap = new HashMap<>();
-    successorMap.put(ifStmt, Collections.singletonList(returnStmt));
-    successorMap.put(ifStmt2, Collections.singletonList(assignl1tol2));
-    successorMap.put(gotoStmt, Collections.singletonList(ifStmt));
-
+    // todo: how to use initializeWith?
+    /*Map<BranchingStmt, List<Stmt>> successorMap = new HashMap<>();
+    successorMap.put(ifStmt, Arrays.asList(ifStmt2, returnStmt));
+    successorMap.put(ifStmt2, Arrays.asList(assignl1tol2, assignl3tol2));
+    successorMap.put(goTo, Collections.singletonList(ifStmt));
     graph.initializeWith(
         Arrays.asList(
-            Arrays.asList(startingStmt, assign1tol1, assign1tol2, assign0tol3, ifStmt),
+            Arrays.asList(startingStmt, assign1tol1, assign1tol2, assign0tol3),
+            Collections.singletonList(ifStmt),
             Collections.singletonList(ifStmt2),
-            Arrays.asList(assignl1tol2, assignl3plus1tol3, gotoStmt),
-            Arrays.asList(assignl3tol2, assignl3plus2tol3, returnStmt)),
+            Arrays.asList(assignl1tol2, assignl3plus1tol3, gotoStmt1),
+            Arrays.asList(assignl3tol2, assignl3plus2tol3, gotoStmt2),
+            Arrays.asList(goTo),
+            Collections.singletonList(returnStmt)),
         successorMap,
-        Collections.emptyList());
+        Collections.emptyList());*/
 
     return builder;
   }
@@ -281,13 +317,13 @@ public class StaticSingleAssignmentFormerTest {
     Map<BranchingStmt, List<Stmt>> successorMap = new HashMap<>();
     successorMap.put(ifStmt, Collections.singletonList(returnStmt));
     successorMap.put(ifStmt2, Collections.singletonList(assignl1tol2));
-    successorMap.put(gotoStmt, Collections.singletonList(ifStmt));
+    successorMap.put(gotoStmt1, Collections.singletonList(ifStmt));
 
     graph.initializeWith(
         Arrays.asList(
             Arrays.asList(startingStmt, assign1tol1, assign1tol2, assign0tol3, ifStmt),
             Collections.singletonList(ifStmt2),
-            Arrays.asList(assignl1tol2, assignl3plus1tol3, gotoStmt),
+            Arrays.asList(assignl1tol2, assignl3plus1tol3, gotoStmt1),
             Arrays.asList(assignl3tol2, assignl3plus2tol3, returnStmt)),
         successorMap,
         Collections.emptyList());
