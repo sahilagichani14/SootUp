@@ -787,7 +787,7 @@ public class MutableBlockStmtGraph extends MutableStmtGraph {
     }
     // if we are here the datastructure should have managed that the next if is true..
     final List<MutableBasicBlock> sBlockPredecessors = followingBlock.getPredecessors();
-    if (sBlockPredecessors.size() != 1 || sBlockPredecessors.get(0) != firstBlock) {
+    if (sBlockPredecessors.size() > 1 || (sBlockPredecessors.size()==1 && sBlockPredecessors.get(0) != firstBlock)) {
       return false;
     }
     // check if the same traps are applied to both blocks
@@ -1070,12 +1070,12 @@ public class MutableBlockStmtGraph extends MutableStmtGraph {
    *                   simplifies the handling of BranchingStmts)
    * @param stmts
    */
-  public void insertBefore(
+  public BasicBlock<?> insertBefore(
       @Nonnull Stmt beforeStmt,
       @Nonnull List<FallsThroughStmt> stmts,
       @Nonnull Map<ClassType, Stmt> exceptionMap) {
     if (stmts.isEmpty()) {
-      return;
+      return stmtToBlock.get(beforeStmt).getRight();
     }
     final Pair<Integer, MutableBasicBlock> beforeStmtBlockPair = stmtToBlock.get(beforeStmt);
     if (beforeStmtBlockPair == null) {
@@ -1098,7 +1098,8 @@ public class MutableBlockStmtGraph extends MutableStmtGraph {
         // all inserted Stmts are FallingThrough: so successorIdx = 0
         predecessorBlock.linkSuccessor(0, block);
       }
-
+      checkAndResetStartingStmt(beforeStmt, stmts);
+      return predecessorBlock;
     } else {
       // TODO: check conditions before splitting if split will be necessary instead of
       // split-and-merge
@@ -1122,8 +1123,12 @@ public class MutableBlockStmtGraph extends MutableStmtGraph {
         }
         blocks.add(successorBlock);
       }
+      checkAndResetStartingStmt(beforeStmt, stmts);
+      return block;
     }
+  }
 
+  private void checkAndResetStartingStmt(Stmt beforeStmt, List<FallsThroughStmt> stmts){
     if (beforeStmt == getStartingStmt()) {
       setStartingStmt(stmts.get(0));
     }
