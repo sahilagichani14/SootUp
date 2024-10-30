@@ -787,7 +787,8 @@ public class MutableBlockStmtGraph extends MutableStmtGraph {
     }
     // if we are here the datastructure should have managed that the next if is true..
     final List<MutableBasicBlock> sBlockPredecessors = followingBlock.getPredecessors();
-    if (sBlockPredecessors.size() > 1 || (sBlockPredecessors.size()==1 && sBlockPredecessors.get(0) != firstBlock)) {
+    if (sBlockPredecessors.size() > 1
+        || (sBlockPredecessors.size() == 1 && sBlockPredecessors.get(0) != firstBlock)) {
       return false;
     }
     // check if the same traps are applied to both blocks
@@ -1128,7 +1129,7 @@ public class MutableBlockStmtGraph extends MutableStmtGraph {
     }
   }
 
-  private void checkAndResetStartingStmt(Stmt beforeStmt, List<FallsThroughStmt> stmts){
+  private void checkAndResetStartingStmt(Stmt beforeStmt, List<FallsThroughStmt> stmts) {
     if (beforeStmt == getStartingStmt()) {
       setStartingStmt(stmts.get(0));
     }
