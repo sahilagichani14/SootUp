@@ -99,7 +99,7 @@ public class StaticSingleAssignmentFormer implements BodyInterceptor {
     // delete meaningless phiStmts and add other phiStmts into stmtGraph
     addPhiStmts(blockToPhiStmts, stmtGraph, blockToDefs);
 
-    //some blocks are modified, so DominanceFinder must be updated for building dominance tree
+    // some blocks are modified, so DominanceFinder must be updated for building dominance tree
     DominanceTree tree = new DominanceTree(new DominanceFinder(stmtGraph));
 
     Map<Local, Stack<Local>> localToNameStack = new HashMap<>();
@@ -312,14 +312,14 @@ public class StaticSingleAssignmentFormer implements BodyInterceptor {
       }
       for (FallsThroughStmt phi : phis) {
         BasicBlock<?> updatedBlock = blockGraph.insertBefore(block.getHead(), phi);
-        if(!updatedBlock.equals(block)){
+        if (!updatedBlock.equals(block)) {
           old2UpdatedBlock.put(block, updatedBlock);
         }
       }
     }
-    //update new blocks in blockToPhiStmts
-    if(!old2UpdatedBlock.isEmpty()){
-      for(BasicBlock<?> oldB : old2UpdatedBlock.keySet()){
+    // update new blocks in blockToPhiStmts
+    if (!old2UpdatedBlock.isEmpty()) {
+      for (BasicBlock<?> oldB : old2UpdatedBlock.keySet()) {
         Set<FallsThroughStmt> phis = blockToPhiStmts.get(oldB);
         blockToPhiStmts.remove(oldB);
         blockToPhiStmts.put(old2UpdatedBlock.get(oldB), phis);
