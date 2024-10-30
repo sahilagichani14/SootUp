@@ -67,7 +67,7 @@ public abstract class MutableStmtGraph extends StmtGraph<MutableBasicBlock> {
    */
   public abstract void replaceNode(@Nonnull Stmt oldStmt, @Nonnull Stmt newStmt);
 
-  public abstract void insertBefore(
+  public abstract BasicBlock<?> insertBefore(
       @Nonnull Stmt beforeStmt,
       @Nonnull List<FallsThroughStmt> stmts,
       @Nonnull Map<ClassType, Stmt> exceptionMap);
@@ -76,8 +76,8 @@ public abstract class MutableStmtGraph extends StmtGraph<MutableBasicBlock> {
    * inserts the "newStmt" before the position of "beforeStmt" i.e.
    * newStmt.successors().contains(beforeStmt) will be true
    */
-  public void insertBefore(@Nonnull Stmt beforeStmt, @Nonnull FallsThroughStmt newStmt) {
-    insertBefore(beforeStmt, Collections.singletonList(newStmt), Collections.emptyMap());
+  public BasicBlock<?> insertBefore(@Nonnull Stmt beforeStmt, @Nonnull FallsThroughStmt newStmt) {
+    return insertBefore(beforeStmt, Collections.singletonList(newStmt), Collections.emptyMap());
   }
 
   /** removes "stmt" from the StmtGraph */
