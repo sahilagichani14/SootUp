@@ -51,9 +51,12 @@ public class StaticSingleAssignmentFormerTest {
   Local stack4 = JavaJimple.newLocal("stack4", refType);
 
   JIdentityStmt startingStmt = JavaJimple.newIdentityStmt(l0, identityRef, noStmtPositionInfo);
-  JAssignStmt assign1tol1 = JavaJimple.newAssignStmt(l1, IntConstant.getInstance(1), noStmtPositionInfo);
-  JAssignStmt assign1tol2 = JavaJimple.newAssignStmt(l2, IntConstant.getInstance(2), noStmtPositionInfo);
-  JAssignStmt assign0tol3 = JavaJimple.newAssignStmt(l3, IntConstant.getInstance(0), noStmtPositionInfo);
+  JAssignStmt assign1tol1 =
+      JavaJimple.newAssignStmt(l1, IntConstant.getInstance(1), noStmtPositionInfo);
+  JAssignStmt assign1tol2 =
+      JavaJimple.newAssignStmt(l2, IntConstant.getInstance(2), noStmtPositionInfo);
+  JAssignStmt assign0tol3 =
+      JavaJimple.newAssignStmt(l3, IntConstant.getInstance(0), noStmtPositionInfo);
   BranchingStmt ifStmt =
       JavaJimple.newIfStmt(
           JavaJimple.newLtExpr(l3, IntConstant.getInstance(100)), noStmtPositionInfo);
@@ -86,43 +89,43 @@ public class StaticSingleAssignmentFormerTest {
     ssa.interceptBody(builder, new JavaView(Collections.emptyList()));
     System.out.println(builder.build());
     String expectedBodyString =
-        "{\n" +
-                "    Test l0, l0#0;\n" +
-                "    int l1, l1#1, l2, l2#10, l2#2, l2#4, l2#6, l2#8, l3, l3#11, l3#3, l3#5, l3#7, l3#9;\n" +
-                "\n" +
-                "\n" +
-                "    l0#0 := @this: Test;\n" +
-                "    l1#1 = 1;\n" +
-                "    l2#2 = 2;\n" +
-                "    l3#3 = 0;\n" +
-                "\n" +
-                "  label1:\n" +
-                "    l2#4 = phi(l2#2, l2#10);\n" +
-                "    l3#5 = phi(l3#3, l3#11);\n" +
-                "\n" +
-                "    if l3#5 < 100 goto label2;\n" +
-                "\n" +
-                "    return l2#4;\n" +
-                "\n" +
-                "  label2:\n" +
-                "    if l2#4 < 20 goto label3;\n" +
-                "    l2#8 = l3#5;\n" +
-                "    l3#9 = l3#5 + 2;\n" +
-                "\n" +
-                "    goto label4;\n" +
-                "\n" +
-                "  label3:\n" +
-                "    l2#6 = l1#1;\n" +
-                "    l3#7 = l3#5 + 1;\n" +
-                "\n" +
-                "    goto label4;\n" +
-                "\n" +
-                "  label4:\n" +
-                "    l2#10 = phi(l2#6, l2#8);\n" +
-                "    l3#11 = phi(l3#7, l3#9);\n" +
-                "\n" +
-                "    goto label1;\n" +
-                "}\n";
+        "{\n"
+            + "    Test l0, l0#0;\n"
+            + "    int l1, l1#1, l2, l2#10, l2#2, l2#4, l2#6, l2#8, l3, l3#11, l3#3, l3#5, l3#7, l3#9;\n"
+            + "\n"
+            + "\n"
+            + "    l0#0 := @this: Test;\n"
+            + "    l1#1 = 1;\n"
+            + "    l2#2 = 2;\n"
+            + "    l3#3 = 0;\n"
+            + "\n"
+            + "  label1:\n"
+            + "    l2#4 = phi(l2#2, l2#10);\n"
+            + "    l3#5 = phi(l3#3, l3#11);\n"
+            + "\n"
+            + "    if l3#5 < 100 goto label2;\n"
+            + "\n"
+            + "    return l2#4;\n"
+            + "\n"
+            + "  label2:\n"
+            + "    if l2#4 < 20 goto label3;\n"
+            + "    l2#8 = l3#5;\n"
+            + "    l3#9 = l3#5 + 2;\n"
+            + "\n"
+            + "    goto label4;\n"
+            + "\n"
+            + "  label3:\n"
+            + "    l2#6 = l1#1;\n"
+            + "    l3#7 = l3#5 + 1;\n"
+            + "\n"
+            + "    goto label4;\n"
+            + "\n"
+            + "  label4:\n"
+            + "    l2#10 = phi(l2#6, l2#8);\n"
+            + "    l3#11 = phi(l3#7, l3#9);\n"
+            + "\n"
+            + "    goto label1;\n"
+            + "}\n";
 
     assertEquals(expectedBodyString, builder.build().toString());
   }
@@ -218,32 +221,32 @@ public class StaticSingleAssignmentFormerTest {
   private Body.BodyBuilder createBody() {
     MutableBlockStmtGraph graph = new MutableBlockStmtGraph();
 
-    //Block0
+    // Block0
     graph.setStartingStmt(startingStmt);
     graph.putEdge(startingStmt, assign1tol1);
     graph.putEdge(assign1tol1, assign1tol2);
     graph.putEdge(assign1tol2, assign0tol3);
 
-    //block1
+    // block1
     graph.putEdge(assign0tol3, ifStmt);
 
-    //block2
-    graph.putEdge(ifStmt,JIfStmt.TRUE_BRANCH_IDX,  ifStmt2);
+    // block2
+    graph.putEdge(ifStmt, JIfStmt.TRUE_BRANCH_IDX, ifStmt2);
 
-    //block3
-    graph.putEdge(ifStmt,JIfStmt.FALSE_BRANCH_IDX,  returnStmt);
+    // block3
+    graph.putEdge(ifStmt, JIfStmt.FALSE_BRANCH_IDX, returnStmt);
 
-    //block4
+    // block4
     graph.putEdge(ifStmt2, JIfStmt.TRUE_BRANCH_IDX, assignl1tol2);
     graph.putEdge(assignl1tol2, assignl3plus1tol3);
     graph.putEdge(assignl3plus1tol3, gotoStmt1);
 
-    //block 5
+    // block 5
     graph.putEdge(ifStmt2, JIfStmt.FALSE_BRANCH_IDX, assignl3tol2);
     graph.putEdge(assignl3tol2, assignl3plus2tol3);
     graph.putEdge(assignl3plus2tol3, gotoStmt2);
 
-    //block 6
+    // block 6
     graph.putEdge(gotoStmt1, JGotoStmt.BRANCH_IDX, goTo);
     graph.putEdge(gotoStmt2, JGotoStmt.BRANCH_IDX, goTo);
     graph.putEdge(goTo, JGotoStmt.BRANCH_IDX, ifStmt);
