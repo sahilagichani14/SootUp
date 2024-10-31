@@ -3,7 +3,13 @@ package sootup.java.bytecode.frontend.interceptors;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import categories.TestCategories;
+
+import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Collectors;
+
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -14,25 +20,29 @@ import sootup.core.jimple.common.constant.IntConstant;
 import sootup.core.jimple.common.ref.IdentityRef;
 import sootup.core.jimple.common.stmt.*;
 import sootup.core.model.Body;
+import sootup.core.model.Method;
+import sootup.core.model.SourceType;
 import sootup.core.signatures.MethodSignature;
 import sootup.core.types.ClassType;
 import sootup.core.types.VoidType;
 import sootup.core.util.ImmutableUtils;
 import sootup.interceptors.StaticSingleAssignmentFormer;
+import sootup.java.bytecode.frontend.inputlocation.PathBasedAnalysisInputLocation;
 import sootup.java.core.JavaIdentifierFactory;
+import sootup.java.core.JavaSootClass;
 import sootup.java.core.language.JavaJimple;
 import sootup.java.core.types.JavaClassType;
 import sootup.java.core.views.JavaView;
 
 /** @author Zun Wang */
 @Tag(TestCategories.JAVA_8_CATEGORY)
-@Disabled("ms: FIX IT")
 public class StaticSingleAssignmentFormerTest {
 
   // Preparation
   JavaIdentifierFactory factory = JavaIdentifierFactory.getInstance();
   StmtPositionInfo noStmtPositionInfo = StmtPositionInfo.getNoStmtPositionInfo();
   JavaJimple javaJimple = JavaJimple.getInstance();
+  final String location = Paths.get(System.getProperty("user.dir")).getParent() + File.separator + "shared-test-resources/bugfixes/";
 
   JavaClassType intType = factory.getClassType("int");
   JavaClassType classType = factory.getClassType("Test");
@@ -40,7 +50,7 @@ public class StaticSingleAssignmentFormerTest {
   MethodSignature methodSignature =
       new MethodSignature(classType, "test", Collections.emptyList(), VoidType.getInstance());
   IdentityRef identityRef = JavaJimple.newThisRef(classType);
-  ClassType exception = factory.getClassType("Exception");
+  ClassType exceptionType = factory.getClassType("Exception");
   IdentityRef caughtExceptionRef = javaJimple.newCaughtExceptionRef();
 
   // build locals
@@ -77,17 +87,15 @@ public class StaticSingleAssignmentFormerTest {
 
   FallsThroughStmt handlerStmt =
       JavaJimple.newIdentityStmt(stack4, caughtExceptionRef, noStmtPositionInfo);
-  FallsThroughStmt l2eq0 =
+  JAssignStmt l2eq0 =
       JavaJimple.newAssignStmt(l2, IntConstant.getInstance(0), noStmtPositionInfo);
-  JGotoStmt goTo = JavaJimple.newGotoStmt(noStmtPositionInfo);
+  JGotoStmt gotoStmt = JavaJimple.newGotoStmt(noStmtPositionInfo);
 
   @Test
   public void testSSA() {
     StaticSingleAssignmentFormer ssa = new StaticSingleAssignmentFormer();
     Body.BodyBuilder builder = createBody();
-    System.out.println(builder.build());
     ssa.interceptBody(builder, new JavaView(Collections.emptyList()));
-    System.out.println(builder.build());
     String expectedBodyString =
         "{\n"
             + "    Test l0, l0#0;\n"
@@ -130,6 +138,30 @@ public class StaticSingleAssignmentFormerTest {
     assertEquals(expectedBodyString, builder.build().toString());
   }
 
+  @Test
+  public void testSSA2(){
+    ClassType clazzType = factory.getClassType("TrapSSA");
+    MethodSignature methodSignature = factory.getMethodSignature(clazzType, "main", "void", Collections.singletonList("java.lang.String[]"));
+    final Path path = Paths.get(location+"TrapSSA.class");
+    PathBasedAnalysisInputLocation inputLocation = new PathBasedAnalysisInputLocation.ClassFileBasedAnalysisInputLocation(path, "", SourceType.Application);
+    PathBasedAnalysisInputLocation inputLocationWithSSA = new PathBasedAnalysisInputLocation.ClassFileBasedAnalysisInputLocation(path, "", SourceType.Application, Collections.singletonList(new StaticSingleAssignmentFormer()));
+    JavaView view = new JavaView(inputLocationWithSSA);
+    System.out.println(view.getMethod(methodSignature).get().getBody());
+  }
+
+  @Test
+  public void testSSA3(){
+    ClassType clazzType = factory.getClassType("ForLoopSSA");
+    MethodSignature methodSignature = factory.getMethodSignature(clazzType, "main", "void", Collections.singletonList("java.lang.String[]"));
+    final Path path = Paths.get(location+"ForLoopSSA.class");
+    PathBasedAnalysisInputLocation inputLocation = new PathBasedAnalysisInputLocation.ClassFileBasedAnalysisInputLocation(path, "", SourceType.Application);
+    PathBasedAnalysisInputLocation inputLocationWithSSA = new PathBasedAnalysisInputLocation.ClassFileBasedAnalysisInputLocation(path, "", SourceType.Application, Collections.singletonList(new StaticSingleAssignmentFormer()));
+    JavaView view = new JavaView(inputLocationWithSSA);
+    System.out.println(view.getMethod(methodSignature).get().getBody());
+  }
+
+
+  @Disabled("ms: Which Trap body?")
   @Test
   public void testTrappedSSA() {
     StaticSingleAssignmentFormer ssa = new StaticSingleAssignmentFormer();
@@ -195,8 +227,6 @@ public class StaticSingleAssignmentFormerTest {
   }
 
   /**
-   *
-   *
    * <pre>
    *    l0 := @this Test
    *    l1 = 1
@@ -247,9 +277,9 @@ public class StaticSingleAssignmentFormerTest {
     graph.putEdge(assignl3plus2tol3, gotoStmt2);
 
     // block 6
-    graph.putEdge(gotoStmt1, JGotoStmt.BRANCH_IDX, goTo);
-    graph.putEdge(gotoStmt2, JGotoStmt.BRANCH_IDX, goTo);
-    graph.putEdge(goTo, JGotoStmt.BRANCH_IDX, ifStmt);
+    graph.putEdge(gotoStmt1, JGotoStmt.BRANCH_IDX, gotoStmt);
+    graph.putEdge(gotoStmt2, JGotoStmt.BRANCH_IDX, gotoStmt);
+    graph.putEdge(gotoStmt, JGotoStmt.BRANCH_IDX, ifStmt);
 
     Body.BodyBuilder builder = Body.builder(graph);
     builder.setMethodSignature(methodSignature);
@@ -309,33 +339,56 @@ public class StaticSingleAssignmentFormerTest {
    */
   private Body.BodyBuilder createTrapBody() {
     MutableBlockStmtGraph graph = new MutableBlockStmtGraph();
+
+    // Block0
+    graph.setStartingStmt(startingStmt);
+    graph.putEdge(startingStmt, assign1tol1);
+    graph.putEdge(assign1tol1, assign1tol2);
+    graph.putEdge(assign1tol2, assign0tol3);
+
+    // block1
+    graph.putEdge(assign0tol3, ifStmt);
+
+    // block2
+    graph.putEdge(ifStmt, JIfStmt.TRUE_BRANCH_IDX, ifStmt2);
+
+    // block3
+    graph.putEdge(ifStmt, JIfStmt.FALSE_BRANCH_IDX, returnStmt);
+
+    // block4
+    graph.putEdge(ifStmt2, JIfStmt.TRUE_BRANCH_IDX, assignl1tol2);
+    graph.putEdge(assignl1tol2, assignl3plus1tol3);
+    graph.putEdge(assignl3plus1tol3, gotoStmt1);
+
+    // block 5
+    graph.putEdge(ifStmt2, JIfStmt.FALSE_BRANCH_IDX, assignl3tol2);
+    graph.putEdge(assignl3tol2, assignl3plus2tol3);
+    graph.putEdge(assignl3plus2tol3, gotoStmt2);
+
+    // block 6
+    graph.putEdge(gotoStmt1, JGotoStmt.BRANCH_IDX, gotoStmt);
+    graph.putEdge(gotoStmt2, JGotoStmt.BRANCH_IDX, gotoStmt);
+    graph.putEdge(gotoStmt, JGotoStmt.BRANCH_IDX, ifStmt);
+
+    // add exception
+    graph.addNode(assignl1tol2, Collections.singletonMap(exceptionType, handlerStmt));
+
+    graph.putEdge(handlerStmt, l2eq0);
+    graph.putEdge(l2eq0, gotoStmt);
+    graph.putEdge(gotoStmt, JGotoStmt.BRANCH_IDX, assignl3plus1tol3);
+
     Body.BodyBuilder builder = Body.builder(graph);
     builder.setMethodSignature(methodSignature);
 
     // build set locals
     Set<Local> locals = ImmutableUtils.immutableSet(l0, l1, l2, l3, stack4);
     builder.setLocals(locals);
-    Map<BranchingStmt, List<Stmt>> successorMap = new HashMap<>();
-    successorMap.put(ifStmt, Collections.singletonList(returnStmt));
-    successorMap.put(ifStmt2, Collections.singletonList(assignl1tol2));
-    successorMap.put(gotoStmt1, Collections.singletonList(ifStmt));
-
-    graph.initializeWith(
-        Arrays.asList(
-            Arrays.asList(startingStmt, assign1tol1, assign1tol2, assign0tol3, ifStmt),
-            Collections.singletonList(ifStmt2),
-            Arrays.asList(assignl1tol2, assignl3plus1tol3, gotoStmt1),
-            Arrays.asList(assignl3tol2, assignl3plus2tol3, returnStmt)),
-        successorMap,
-        Collections.emptyList());
-
-    // add exception
-    graph.addNode(assignl1tol2, Collections.singletonMap(exception, handlerStmt));
-
-    graph.putEdge(handlerStmt, l2eq0);
-    graph.putEdge(l2eq0, goTo);
-    graph.putEdge(goTo, JGotoStmt.BRANCH_IDX, assignl3plus1tol3);
 
     return builder;
   }
+
+
+
+
+
 }
