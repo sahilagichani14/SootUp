@@ -23,7 +23,6 @@ package sootup.core.graph;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 
 public enum BlockAnalysisDirection {
@@ -31,11 +30,8 @@ public enum BlockAnalysisDirection {
     @Override
     @Nonnull
     List<BasicBlock<?>> getPredecessors(BasicBlock<?> block) {
-      List<BasicBlock<?>> esuccs =
-          block.getExceptionalSuccessors().values().stream().collect(Collectors.toList());
-      List<BasicBlock<?>> succs = (List<BasicBlock<?>>) block.getSuccessors();
-      succs.addAll(esuccs);
-      return succs;
+      // todo: Blocks in PostOrderBackward contain no exceptional blocks!!
+      return (List<BasicBlock<?>>) block.getSuccessors();
     }
 
     @Nonnull
