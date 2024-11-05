@@ -8,7 +8,6 @@ import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Tag;
@@ -20,7 +19,6 @@ import sootup.core.jimple.common.constant.IntConstant;
 import sootup.core.jimple.common.ref.IdentityRef;
 import sootup.core.jimple.common.stmt.*;
 import sootup.core.model.Body;
-import sootup.core.model.Method;
 import sootup.core.model.SourceType;
 import sootup.core.signatures.MethodSignature;
 import sootup.core.types.ClassType;
@@ -29,7 +27,6 @@ import sootup.core.util.ImmutableUtils;
 import sootup.interceptors.StaticSingleAssignmentFormer;
 import sootup.java.bytecode.frontend.inputlocation.PathBasedAnalysisInputLocation;
 import sootup.java.core.JavaIdentifierFactory;
-import sootup.java.core.JavaSootClass;
 import sootup.java.core.language.JavaJimple;
 import sootup.java.core.types.JavaClassType;
 import sootup.java.core.views.JavaView;
@@ -84,12 +81,14 @@ public class StaticSingleAssignmentFormerTest {
           l3, JavaJimple.newAddExpr(l3, IntConstant.getInstance(2)), noStmtPositionInfo);
   JGotoStmt gotoStmt1 = JavaJimple.newGotoStmt(noStmtPositionInfo);
   JGotoStmt gotoStmt2 = JavaJimple.newGotoStmt(noStmtPositionInfo);
+  JGotoStmt gotoStmt3 = JavaJimple.newGotoStmt(noStmtPositionInfo);
 
   FallsThroughStmt handlerStmt =
       JavaJimple.newIdentityStmt(stack4, caughtExceptionRef, noStmtPositionInfo);
-  JAssignStmt l2eq0 =
-      JavaJimple.newAssignStmt(l2, IntConstant.getInstance(0), noStmtPositionInfo);
+  JAssignStmt l2eq2 =
+      JavaJimple.newAssignStmt(l2, IntConstant.getInstance(2), noStmtPositionInfo);
   JGotoStmt gotoStmt = JavaJimple.newGotoStmt(noStmtPositionInfo);
+
 
   @Test
   public void testSSA() {
@@ -357,6 +356,7 @@ public class StaticSingleAssignmentFormerTest {
 
     // block4
     graph.putEdge(ifStmt2, JIfStmt.TRUE_BRANCH_IDX, assignl1tol2);
+    graph.addExceptionalEdge(assignl1tol2, exceptionType, handlerStmt);
     graph.putEdge(assignl1tol2, assignl3plus1tol3);
     graph.putEdge(assignl3plus1tol3, gotoStmt1);
 
@@ -371,11 +371,12 @@ public class StaticSingleAssignmentFormerTest {
     graph.putEdge(gotoStmt, JGotoStmt.BRANCH_IDX, ifStmt);
 
     // add exception
-    graph.addNode(assignl1tol2, Collections.singletonMap(exceptionType, handlerStmt));
 
-    graph.putEdge(handlerStmt, l2eq0);
-    graph.putEdge(l2eq0, gotoStmt);
-    graph.putEdge(gotoStmt, JGotoStmt.BRANCH_IDX, assignl3plus1tol3);
+
+    graph.putEdge(handlerStmt, l2eq2);
+    graph.putEdge(l2eq2, gotoStmt3);
+    graph.putEdge(gotoStmt3, JGotoStmt.BRANCH_IDX, assignl3plus1tol3);
+    graph.buildTraps();
 
     Body.BodyBuilder builder = Body.builder(graph);
     builder.setMethodSignature(methodSignature);
