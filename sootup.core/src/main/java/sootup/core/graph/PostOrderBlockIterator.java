@@ -22,6 +22,7 @@ package sootup.core.graph;
  */
 
 import java.util.*;
+import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 
 public class PostOrderBlockIterator implements BlockIterator {
@@ -53,7 +54,11 @@ public class PostOrderBlockIterator implements BlockIterator {
       if (frame.succIterator.hasNext()) {
         BasicBlock<?> succ = frame.succIterator.next();
         if (visitNode(succ)) {
-          stack.push(new Frame(succ, ((List<BasicBlock<?>>) succ.getSuccessors()).iterator()));
+          List<BasicBlock<?>> esuccs =
+              succ.getExceptionalSuccessors().values().stream().collect(Collectors.toList());
+          List<BasicBlock<?>> succs = (List<BasicBlock<?>>) succ.getSuccessors();
+          succs.addAll(esuccs);
+          stack.push(new Frame(succ, succs.iterator()));
         }
       } else {
         stack.pop();

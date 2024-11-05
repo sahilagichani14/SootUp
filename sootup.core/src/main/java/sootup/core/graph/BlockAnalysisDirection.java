@@ -23,14 +23,19 @@ package sootup.core.graph;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 
 public enum BlockAnalysisDirection {
   POSTORDERBACKWARD {
     @Override
     @Nonnull
-    List<? extends BasicBlock<?>> getPredecessors(BasicBlock<?> block) {
-      return block.getSuccessors();
+    List<BasicBlock<?>> getPredecessors(BasicBlock<?> block) {
+      List<BasicBlock<?>> esuccs =
+          block.getExceptionalSuccessors().values().stream().collect(Collectors.toList());
+      List<BasicBlock<?>> succs = (List<BasicBlock<?>>) block.getSuccessors();
+      succs.addAll(esuccs);
+      return succs;
     }
 
     @Nonnull
@@ -42,8 +47,8 @@ public enum BlockAnalysisDirection {
   REVERSEPOSTORDERFORWARD {
     @Override
     @Nonnull
-    List<? extends BasicBlock<?>> getPredecessors(BasicBlock<?> block) {
-      return block.getPredecessors();
+    List<BasicBlock<?>> getPredecessors(BasicBlock<?> block) {
+      return (List<BasicBlock<?>>) block.getPredecessors();
     }
 
     @Nonnull
@@ -55,7 +60,7 @@ public enum BlockAnalysisDirection {
   };
 
   @Nonnull
-  abstract List<? extends BasicBlock<?>> getPredecessors(BasicBlock<?> block);
+  abstract List<BasicBlock<?>> getPredecessors(BasicBlock<?> block);
 
   @Nonnull
   abstract List<BasicBlock<?>> getSortedBlocks(StmtGraph<?> blockGraph);
