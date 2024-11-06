@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.*;
 import java.util.stream.Collectors;
+
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import sootup.core.jimple.common.stmt.*;
@@ -49,15 +51,16 @@ public class PostDominanceFinderTest {
   }
 
   @Test
+  @Disabled("PostDominanceFinder doesn't work, if blockgraph contains two end-blocks")
   public void testDominanceFinder2() {
     MutableBlockStmtGraph graph = graphGenerator.createStmtGraph3();
-    /*PostDominanceFinder postDom = new PostDominanceFinder(graph);
+    PostDominanceFinder postDom = new PostDominanceFinder(graph);
 
     int[] domsArr = postDom.getImmediateDominators();
     List<Integer> pDoms = Arrays.stream(domsArr).boxed().collect(Collectors.toList());
 
     List<Integer> expectedPDoms = Arrays.asList(2,2,2);
-    assertEquals(expectedPDoms, pDoms);*/
+    assertEquals(expectedPDoms, pDoms);
   }
 
   @Test
