@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.*;
 import java.util.stream.Collectors;
-
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -59,7 +58,7 @@ public class PostDominanceFinderTest {
     int[] domsArr = postDom.getImmediateDominators();
     List<Integer> pDoms = Arrays.stream(domsArr).boxed().collect(Collectors.toList());
 
-    List<Integer> expectedPDoms = Arrays.asList(2,2,2);
+    List<Integer> expectedPDoms = Arrays.asList(2, 2, 2);
     assertEquals(expectedPDoms, pDoms);
   }
 
