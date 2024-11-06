@@ -7,7 +7,6 @@ import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import sootup.core.graph.MutableBlockStmtGraph;
@@ -136,8 +135,9 @@ public class StaticSingleAssignmentFormerTest {
     assertEquals(expectedBodyString, builder.build().toString());
   }
 
-  @Disabled("zw: fix me!")
   @Test
+  // todo: delete after correction, some blocks has redundant predecessors
+  // todo: [$stack14 := @caughtexception ... throw $l14]
   public void testSSA2() {
     ClassType clazzType = factory.getClassType("TrapSSA");
     MethodSignature methodSignature =
@@ -153,11 +153,13 @@ public class StaticSingleAssignmentFormerTest {
             "",
             SourceType.Application,
             Collections.singletonList(new StaticSingleAssignmentFormer()));
-    JavaView view = new JavaView(inputLocationWithSSA);
-    System.out.println(view.getMethod(methodSignature).get().getBody());
+    JavaView view = new JavaView(inputLocation);
+    JavaView viewSSA = new JavaView(inputLocationWithSSA);
+    Body body = view.getMethod(methodSignature).get().getBody();
+    Body bodyAfterSSA = viewSSA.getMethod(methodSignature).get().getBody();
+    // System.out.println(bodyAfterSSA);
   }
 
-  @Disabled("zw: Fix Me!")
   @Test
   public void testSSA3() {
     ClassType clazzType = factory.getClassType("ForLoopSSA");
@@ -165,17 +167,49 @@ public class StaticSingleAssignmentFormerTest {
         factory.getMethodSignature(
             clazzType, "main", "void", Collections.singletonList("java.lang.String[]"));
     final Path path = Paths.get(location + "ForLoopSSA.class");
-    PathBasedAnalysisInputLocation inputLocation =
-        new PathBasedAnalysisInputLocation.ClassFileBasedAnalysisInputLocation(
-            path, "", SourceType.Application);
     PathBasedAnalysisInputLocation inputLocationWithSSA =
         new PathBasedAnalysisInputLocation.ClassFileBasedAnalysisInputLocation(
             path,
             "",
             SourceType.Application,
             Collections.singletonList(new StaticSingleAssignmentFormer()));
-    JavaView view = new JavaView(inputLocationWithSSA);
-    System.out.println(view.getMethod(methodSignature).get().getBody());
+    JavaView viewSSA = new JavaView(inputLocationWithSSA);
+    Body bodyAfterSSA = viewSSA.getMethod(methodSignature).get().getBody();
+
+    String expectedBodyString =
+        "{\n"
+            + "    java.lang.String[] l0, l0#0;\n"
+            + "    unknown $stack3, $stack3#5, $stack4, $stack4#6, $stack5, $stack5#7, $stack6, $stack6#9, $stack7, $stack7#8, $stack8, $stack8#10, l1, l1#1, l1#11, l1#3, l2, l2#12, l2#2, l2#4;\n"
+            + "\n"
+            + "\n"
+            + "    l0#0 := @parameter0: java.lang.String[];\n"
+            + "    l1#1 = \"\";\n"
+            + "    l2#2 = 0;\n"
+            + "\n"
+            + "  label1:\n"
+            + "    l1#3 = phi(l1#1, l1#11);\n"
+            + "    l2#4 = phi(l2#2, l2#12);\n"
+            + "    $stack3#5 = lengthof l0#0;\n"
+            + "\n"
+            + "    if l2#4 >= $stack3#5 goto label2;\n"
+            + "    $stack5#7 = new java.lang.StringBuilder;\n"
+            + "    specialinvoke $stack5#7.<java.lang.StringBuilder: void <init>()>();\n"
+            + "    $stack7#8 = virtualinvoke $stack5#7.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>(l1#3);\n"
+            + "    $stack6#9 = l0#0[l2#4];\n"
+            + "    $stack8#10 = virtualinvoke $stack7#8.<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>($stack6#9);\n"
+            + "    l1#11 = virtualinvoke $stack8#10.<java.lang.StringBuilder: java.lang.String toString()>();\n"
+            + "    l2#12 = l2#4 + 1;\n"
+            + "\n"
+            + "    goto label1;\n"
+            + "\n"
+            + "  label2:\n"
+            + "    $stack4#6 = <java.lang.System: java.io.PrintStream out>;\n"
+            + "    virtualinvoke $stack4#6.<java.io.PrintStream: void println(java.lang.String)>(l1#3);\n"
+            + "\n"
+            + "    return;\n"
+            + "}\n";
+
+    assertEquals(expectedBodyString, bodyAfterSSA.toString());
   }
 
   @Test
