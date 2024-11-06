@@ -306,7 +306,7 @@ public class StaticSingleAssignmentFormer implements BodyInterceptor {
       Set<FallsThroughStmt> phis = blockToPhiStmts.get(block);
       Set<FallsThroughStmt> checkedPhis = new HashSet<>(blockToPhiStmts.get(block));
       for (FallsThroughStmt cphi : checkedPhis) {
-        if (phiToNum.get(cphi) < 2) {
+        if (!phiToNum.containsKey(cphi) || phiToNum.get(cphi) < 2) {
           phis.remove(cphi);
         }
       }
