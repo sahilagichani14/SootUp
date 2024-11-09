@@ -65,6 +65,8 @@ import sootup.core.util.printer.JimplePrinter;
  */
 public abstract class StmtGraph<V extends BasicBlock<V>> implements Iterable<Stmt> {
 
+  public final JimplePrinter jimplePrinter = new JimplePrinter();
+
   public abstract Stmt getStartingStmt();
 
   public abstract BasicBlock<?> getStartingStmtBlock();
@@ -149,15 +151,6 @@ public abstract class StmtGraph<V extends BasicBlock<V>> implements Iterable<Stm
   public abstract boolean hasEdgeConnecting(@Nonnull Stmt source, @Nonnull Stmt target);
 
   /**
-   * returns a (reconstructed) list of traps like the traptable in the bytecode
-   *
-   * <p>Note: if you need exceptionional flow information in more augmented with the affected
-   * blocks/stmts and not just a (reconstructed, possibly more verbose) traptable - have a look at
-   * BasicBlock.getExceptionalSuccessor()
-   */
-  public abstract List<Trap> buildTraps();
-
-  /**
    * Removes the specified exceptional flow from all blocks.
    *
    * @param exceptionType The class type of the exceptional flow.
@@ -206,15 +199,25 @@ public abstract class StmtGraph<V extends BasicBlock<V>> implements Iterable<Stm
   /** validates whether the each Stmt has the correct amount of outgoing flows. */
   public void validateStmtConnectionsInGraph() {
     try {
+      List<Stmt> handlerStmts = new ArrayList<>();
+      for (Stmt stmt: getNodes()){
+        if (stmt instanceof JIdentityStmt) {
+          //JThrowStmt?
+          IdentityRef rightOp = ((JIdentityStmt) stmt).getRightOp();
+          if (rightOp instanceof JCaughtExceptionRef) {
+            handlerStmts.add(stmt);
+          }
+        }
+      }
 
       for (Stmt stmt : getNodes()) {
         final List<Stmt> successors = successors(stmt);
         final int successorCount = successors.size();
 
         if (predecessors(stmt).isEmpty()) {
+
           if (!(stmt == getStartingStmt()
-              || buildTraps().stream()
-                  .map(Trap::getHandlerStmt)
+              || handlerStmts.stream()
                   .anyMatch(handler -> handler == stmt))) {
             throw new IllegalStateException(
                 "Stmt '"
@@ -353,7 +356,7 @@ public abstract class StmtGraph<V extends BasicBlock<V>> implements Iterable<Stm
       return false;
     }
 
-    if (!buildTraps().equals(otherGraph.buildTraps())) {
+    if (!jimplePrinter.buildTraps(this).equals(jimplePrinter.buildTraps(otherGraph))) {
       return false;
     }
 
@@ -517,7 +520,7 @@ public abstract class StmtGraph<V extends BasicBlock<V>> implements Iterable<Stm
   }
 
   /** Iterates over the blocks */
-  protected class BlockGraphIterator implements Iterator<BasicBlock<?>> {
+  public class BlockGraphIterator implements Iterator<BasicBlock<?>> {
 
     @Nonnull private final ArrayDeque<BasicBlock<?>> trapHandlerBlocks = new ArrayDeque<>();
 
@@ -717,7 +720,7 @@ public abstract class StmtGraph<V extends BasicBlock<V>> implements Iterable<Stm
       }
     }
 
-    for (Trap trap : buildTraps()) {
+    for (Trap trap : jimplePrinter.buildTraps(this)) {
       stmtList.add(trap.getBeginStmt());
       stmtList.add(trap.getEndStmt());
       stmtList.add(trap.getHandlerStmt());
@@ -730,7 +733,7 @@ public abstract class StmtGraph<V extends BasicBlock<V>> implements Iterable<Stm
   public String toString() {
     StringWriter writer = new StringWriter();
     try (PrintWriter writerOut = new PrintWriter(new EscapedWriter(writer))) {
-      new JimplePrinter().printTo(this, writerOut);
+      jimplePrinter.printTo(this, writerOut);
     }
     return writer.toString();
   }

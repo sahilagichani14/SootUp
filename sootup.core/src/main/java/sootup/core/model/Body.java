@@ -117,7 +117,7 @@ public class Body implements HasPosition {
   @Nonnull
   @Deprecated()
   public List<Trap> getTraps() {
-    return graph.buildTraps();
+    return new JimplePrinter().buildTraps(graph);
   }
 
   /** Return unit containing the \@this-assignment * */

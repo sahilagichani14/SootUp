@@ -1596,39 +1596,6 @@ public class MutableBlockStmtGraph extends MutableStmtGraph {
     }
   }
 
-  /** Comparator which sorts the trap output in getTraps() */
-  public Comparator<Trap> getTrapComparator(@Nonnull Map<Stmt, Integer> stmtsBlockIdx) {
-    return (a, b) ->
-        ComparisonChain.start()
-            .compare(stmtsBlockIdx.get(a.getBeginStmt()), stmtsBlockIdx.get(b.getBeginStmt()))
-            .compare(stmtsBlockIdx.get(a.getEndStmt()), stmtsBlockIdx.get(b.getEndStmt()))
-            // [ms] would be nice to have the traps ordered by exception hierarchy as well
-            .compare(a.getExceptionType().toString(), b.getExceptionType().toString())
-            .result();
-  }
-
-  /** hint: little expensive getter - its more of a build/create - currently no overlaps */
-  @Override
-  public List<Trap> buildTraps() {
-    // [ms] try to incorporate it into the serialisation of jimple printing so the other half of
-    // iteration information is not wasted..
-    BlockGraphIteratorAndTrapAggregator it =
-        new BlockGraphIteratorAndTrapAggregator(new MutableBasicBlockImpl());
-    // it.getTraps() is valid/completely build when the iterator is done.
-    Map<Stmt, Integer> stmtsBlockIdx = new IdentityHashMap<>();
-    int i = 0;
-    // collect BlockIdx positions to sort the traps according to the numbering
-    while (it.hasNext()) {
-      final BasicBlock<?> nextBlock = it.next();
-      stmtsBlockIdx.put(nextBlock.getHead(), i);
-      stmtsBlockIdx.put(nextBlock.getTail(), i);
-      i++;
-    }
-    final List<Trap> traps = it.getTraps();
-    traps.sort(getTrapComparator(stmtsBlockIdx));
-    return traps;
-  }
-
   @Override
   public void removeExceptionalFlowFromAllBlocks(
       @Nonnull ClassType exceptionType, @Nonnull Stmt exceptionHandlerStmt) {

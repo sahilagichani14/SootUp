@@ -137,12 +137,6 @@ public class ImmutableBlockStmtGraph
     throw new UnsupportedOperationException("Not implemented yet!");
   }
 
-  @Nonnull
-  @Override
-  public List<Trap> buildTraps() {
-    throw new UnsupportedOperationException("Not implemented yet!");
-  }
-
   @Override
   public void removeExceptionalFlowFromAllBlocks(ClassType classType, Stmt exceptionHandlerStmt) {
     throw new UnsupportedOperationException("Not implemented yet!");

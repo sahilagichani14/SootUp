@@ -128,12 +128,6 @@ public class ForwardingStmtGraph<V extends BasicBlock<V>> extends StmtGraph<V> {
     return backingGraph.iterator();
   }
 
-  @Nonnull
-  @Override
-  public List<Trap> buildTraps() {
-    return backingGraph.buildTraps();
-  }
-
   @Override
   public void removeExceptionalFlowFromAllBlocks(
       @Nonnull ClassType exceptionType, @Nonnull Stmt exceptionHandlerStmt) {

@@ -22,11 +22,8 @@ package sootup.core.util.printer;
  * #L%
  */
 
-import java.io.PrintWriter;
-import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import sootup.core.graph.StmtGraph;
+import com.google.common.collect.ComparisonChain;
+import sootup.core.graph.*;
 import sootup.core.jimple.Jimple;
 import sootup.core.jimple.basic.Local;
 import sootup.core.jimple.basic.Trap;
@@ -37,6 +34,12 @@ import sootup.core.signatures.MethodSignature;
 import sootup.core.signatures.PackageName;
 import sootup.core.types.ClassType;
 import sootup.core.types.Type;
+
+import javax.annotation.Nonnull;
+import java.io.PrintWriter;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Prints out a class and all its methods.
@@ -298,6 +301,44 @@ public class JimplePrinter {
   }
 
   /**
+   * returns a (reconstructed) list of traps like the traptable in the bytecode
+   *
+   * <p>Note: if you need exceptionional flow information in more augmented with the affected
+   * blocks/stmts and not just a (reconstructed, possibly more verbose) traptable - have a look at
+   * BasicBlock.getExceptionalSuccessor()
+   */
+  /** hint: little expensive getter - its more of a build/create - currently no overlaps */
+  public List<Trap> buildTraps(StmtGraph stmtGraph) {
+    // [ms] try to incorporate it into the serialisation of jimple printing so the other half of
+    // iteration information is not wasted..
+    StmtGraph<MutableBasicBlock>.BlockGraphIteratorAndTrapAggregator it = stmtGraph.new BlockGraphIteratorAndTrapAggregator(new MutableBasicBlockImpl());
+    // it.getTraps() is valid/completely build when the iterator is done.
+    Map<Stmt, Integer> stmtsBlockIdx = new IdentityHashMap<>();
+    int i = 0;
+    // collect BlockIdx positions to sort the traps according to the numbering
+    while (it.hasNext()) {
+      final BasicBlock<?> nextBlock = it.next();
+      stmtsBlockIdx.put(nextBlock.getHead(), i);
+      stmtsBlockIdx.put(nextBlock.getTail(), i);
+      i++;
+    }
+    final List<Trap> traps = it.getTraps();
+    traps.sort(getTrapComparator(stmtsBlockIdx));
+    return traps;
+  }
+
+  /** Comparator which sorts the trap output in getTraps() */
+  public Comparator<Trap> getTrapComparator(@Nonnull Map<Stmt, Integer> stmtsBlockIdx) {
+    return (a, b) ->
+            ComparisonChain.start()
+                    .compare(stmtsBlockIdx.get(a.getBeginStmt()), stmtsBlockIdx.get(b.getBeginStmt()))
+                    .compare(stmtsBlockIdx.get(a.getEndStmt()), stmtsBlockIdx.get(b.getEndStmt()))
+                    // [ms] would be nice to have the traps ordered by exception hierarchy as well
+                    .compare(a.getExceptionType().toString(), b.getExceptionType().toString())
+                    .result();
+  }
+
+  /**
    * Prints out the method corresponding to b Body, (declaration and body), in the textual format
    * corresponding to the IR used to encode b body.
    *
@@ -380,7 +421,7 @@ public class JimplePrinter {
 
     // Print out exceptions
     {
-      Iterator<Trap> trapIt = stmtGraph.buildTraps().iterator();
+      Iterator<Trap> trapIt = buildTraps(stmtGraph).iterator();
 
       if (trapIt.hasNext()) {
         printer.newline();

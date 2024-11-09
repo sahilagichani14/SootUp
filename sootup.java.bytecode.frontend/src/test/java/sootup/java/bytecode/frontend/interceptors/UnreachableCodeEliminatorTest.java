@@ -23,6 +23,7 @@ import sootup.core.types.ClassType;
 import sootup.core.types.PrimitiveType;
 import sootup.core.types.VoidType;
 import sootup.core.util.ImmutableUtils;
+import sootup.core.util.printer.JimplePrinter;
 import sootup.interceptors.UnreachableCodeEliminator;
 import sootup.java.core.JavaIdentifierFactory;
 import sootup.java.core.language.JavaJimple;
@@ -32,6 +33,8 @@ import sootup.java.core.views.JavaView;
 /** @author Zun Wang */
 @Tag(TestCategories.JAVA_8_CATEGORY)
 public class UnreachableCodeEliminatorTest {
+
+  public final JimplePrinter jimplePrinter = new JimplePrinter();
 
   JavaIdentifierFactory factory = JavaIdentifierFactory.getInstance();
   JavaJimple javaJimple = JavaJimple.getInstance();
@@ -139,7 +142,7 @@ public class UnreachableCodeEliminatorTest {
 
     new UnreachableCodeEliminator().interceptBody(builder, new JavaView(Collections.emptyList()));
 
-    assertEquals(0, builder.getStmtGraph().buildTraps().size());
+    assertEquals(0, jimplePrinter.buildTraps(builder.getStmtGraph()).size());
 
     Set<Stmt> expectedStmtsSet = ImmutableUtils.immutableSet(startingStmt, stmt1, ret1);
     AssertUtils.assertSetsEquiv(expectedStmtsSet, builder.getStmtGraph().getNodes());
@@ -175,7 +178,7 @@ public class UnreachableCodeEliminatorTest {
     UnreachableCodeEliminator eliminator = new UnreachableCodeEliminator();
     eliminator.interceptBody(builder, new JavaView(Collections.emptyList()));
 
-    assertEquals(0, builder.getStmtGraph().buildTraps().size());
+    assertEquals(0, jimplePrinter.buildTraps(builder.getStmtGraph()).size());
 
     Set<Stmt> expectedStmtsSet = ImmutableUtils.immutableSet(startingStmt, stmt1, ret1);
     assertEquals(expectedStmtsSet, builder.getStmtGraph().getNodes());
