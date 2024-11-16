@@ -154,7 +154,7 @@ public class SootMethod extends SootClassMember<MethodSignature> implements Meth
 
   /** Returns the number of parameters taken by this method. */
   public int getParameterCount() {
-    return parameterTypes.size();
+    return getSignature().getParameterCount();
   }
 
   /** Gets the type of the <i>n</i>th parameter of this method. */
