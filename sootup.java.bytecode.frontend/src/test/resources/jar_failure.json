@@ -1,0 +1,8 @@
+[
+{
+  "jar_name": "web3j-corda-test-0.2.8.jar",
+  "exception": "Failed to apply sootup.interceptors.NopEliminator@44580de0 to <org.web3j.corda.assertion.ReflectKt: void hasParameters(assertk.Assert,java.lang.String[])>",
+  "download_url": "https://repo1.maven.org/maven2/org/web3j/corda/web3j-corda-test/0.2.8/web3j-corda-test-0.2.8.jar",
+  "failedMethodSignature": "<org.web3j.corda.assertion.ReflectKt: void hasParameters(assertk.Assert,java.lang.String[])>"
+}
+]
