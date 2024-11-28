@@ -506,6 +506,8 @@ public class MutableBlockStmtGraph extends MutableStmtGraph {
   }
 
   /**
+   * Create a new Block for the given stmts, and add exceptional successor to the block
+   *
    * @param stmts List has to be non-empty!
    * @param trapMap
    */
@@ -516,7 +518,7 @@ public class MutableBlockStmtGraph extends MutableStmtGraph {
     MutableBasicBlock block = getOrCreateBlock(node);
     if (block.getHead() != node || block.getSuccessors().stream().anyMatch(Objects::nonNull)) {
       throw new IllegalArgumentException(
-          "The first Stmt in the List is already in the StmtGraph and and is not the head of a Block where currently no successor are set, yet.");
+          "The first Stmt in the List is already in the StmtGraph and is not the head of a Block where currently no successor are set, yet.");
     } else if (block.getStmtCount() > 1) {
       throw new IllegalArgumentException(
           "The first Stmt in the List is already in the StmtGraph and has at least one (fallsthrough) successor in its Block.");
@@ -787,9 +789,10 @@ public class MutableBlockStmtGraph extends MutableStmtGraph {
         || (fBlocksuccessors.size() == 1 && fBlocksuccessors.get(0) != followingBlock)) {
       return false;
     }
-    // if we are here the datastructure should have managed that the next if is true..
+    // if we are here the data-structure should have managed that the next if is true.
     final List<MutableBasicBlock> sBlockPredecessors = followingBlock.getPredecessors();
-    if (sBlockPredecessors.size() != 1 || sBlockPredecessors.get(0) != firstBlock) {
+    if (sBlockPredecessors.size() > 1
+        || (sBlockPredecessors.size() == 1 && sBlockPredecessors.get(0) != firstBlock)) {
       return false;
     }
     // check if the same traps are applied to both blocks
@@ -819,7 +822,7 @@ public class MutableBlockStmtGraph extends MutableStmtGraph {
 
       blocks.remove(followingBlock);
 
-      // cleanup old block..
+      // cleanup old block.
       followingBlock.clearPredecessorBlocks();
     }
     return mergeable;
