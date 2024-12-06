@@ -35,10 +35,7 @@ import sootup.core.jimple.basic.LocalGenerator;
 import sootup.core.jimple.basic.StmtPositionInfo;
 import sootup.core.jimple.basic.Trap;
 import sootup.core.jimple.common.ref.JCaughtExceptionRef;
-import sootup.core.jimple.common.stmt.BranchingStmt;
-import sootup.core.jimple.common.stmt.FallsThroughStmt;
-import sootup.core.jimple.common.stmt.JIdentityStmt;
-import sootup.core.jimple.common.stmt.Stmt;
+import sootup.core.jimple.common.stmt.*;
 import sootup.core.signatures.MethodSignature;
 import sootup.core.types.ClassType;
 import sootup.core.types.Type;
@@ -1071,67 +1068,101 @@ public class MutableBlockStmtGraph extends MutableStmtGraph {
   /*
    * Note: if there is a stmt branching to the beforeStmt this is not updated to the new stmt
    *
-   * @param beforeStmt the Stmt which succeeds the inserted Stmts (its NOT preceeding as this
+   * @param existingStmt: the Stmt which succeeds the inserted Stmts (its NOT preceeding as this
    *                   simplifies the handling of BranchingStmts)
-   * @param stmts
+   * @param stmts: a list of FallsThroughStmts except for IfStmt
    */
-  public void insertBefore(
-      @Nonnull Stmt beforeStmt,
+  @Nonnull
+  public BasicBlock<?> insertBefore(
+      @Nonnull Stmt existingStmt,
       @Nonnull List<FallsThroughStmt> stmts,
       @Nonnull Map<ClassType, Stmt> exceptionMap) {
     if (stmts.isEmpty()) {
-      return;
+      return stmtToBlock.get(existingStmt).getRight();
     }
-    final Pair<Integer, MutableBasicBlock> beforeStmtBlockPair = stmtToBlock.get(beforeStmt);
-    if (beforeStmtBlockPair == null) {
+    if (!insertable(stmts)) {
+      throw new IllegalArgumentException("The given list contains IfStmt or illegal order!");
+    }
+    final Pair<Integer, MutableBasicBlock> oldBlockPair = stmtToBlock.get(existingStmt);
+    if (oldBlockPair == null) {
       throw new IllegalArgumentException(
-          "beforeStmt '" + beforeStmt + "' does not exists in this StmtGraph.");
+          "beforeStmt '" + existingStmt + "' does not exists in this StmtGraph.");
     }
-    final MutableBasicBlock block = beforeStmtBlockPair.getRight();
-    if (block.getHead() == beforeStmt) {
-      // insert before a Stmt that is at the beginning of a Block? -> new block, reconnect, try to
-      // merge blocks - performance hint: if exceptionMap equals the current blocks exception and
-      // the stmts have only fallsthrough Stmts there could be some allocation/deallocation be saved
-      final MutableBasicBlock predecessorBlock = addBlockInternal(stmts, exceptionMap);
-      for (MutableBasicBlock predecessor : Lists.newArrayList(block.getPredecessors())) {
+    final MutableBasicBlock oldBlock = oldBlockPair.getRight();
+    // create a new block for inserted stmts and connect the exceptional link
+    final MutableBasicBlock newBlock = addBlockInternal(stmts, exceptionMap);
+    // insert before a existingStmt that is at the beginning of a Block
+    if (oldBlock.getHead() == existingStmt) {
+      for (MutableBasicBlock predecessor : Lists.newArrayList(oldBlock.getPredecessors())) {
         // cleanup old & add new link
-        predecessor.replaceSuccessorBlock(block, predecessorBlock);
-        block.removePredecessorBlock(predecessor);
-        predecessorBlock.addPredecessorBlock(predecessor);
+        predecessor.replaceSuccessorBlock(oldBlock, newBlock);
+        oldBlock.removePredecessorBlock(predecessor);
+        newBlock.addPredecessorBlock(predecessor);
       }
-      if (!tryMergeBlocks(predecessorBlock, block)) {
-        // all inserted Stmts are FallingThrough: so successorIdx = 0
-        predecessorBlock.linkSuccessor(0, block);
+      // try to merge inserted stmts into oldBlock
+      if (!tryMergeBlocks(newBlock, oldBlock)) {
+        // all inserted stmts are FallingThrough: so successorIdx = 0
+        newBlock.linkSuccessor(0, oldBlock);
+        if (existingStmt == getStartingStmt()) {
+          setStartingStmt(stmts.get(0));
+        }
       }
-
+      if (existingStmt == getStartingStmt()) {
+        setStartingStmt(stmts.get(0));
+      }
+      return newBlock;
     } else {
-      // TODO: check conditions before splitting if split will be necessary instead of
-      // split-and-merge
-      final MutableBasicBlock successorBlock =
-          block.splitBlockLinked(beforeStmtBlockPair.getLeft());
-      exceptionMap.forEach(
-          (type, handler) ->
-              successorBlock.linkExceptionalSuccessorBlock(type, getOrCreateBlock(handler)));
-      stmts.forEach(stmt -> addNodeToBlock(block, stmt));
-      if (tryMergeBlocks(block, successorBlock)) {
-        // blocks are merged: update index of the merged stmts
-        int idx = block.getStmtCount() - successorBlock.getStmtCount();
-        for (Stmt stmt : successorBlock.getStmts()) {
-          stmtToBlock.put(stmt, new MutablePair<>(idx++, block));
+      // split the oldBlock in two parts: oldBlock(firstHalfBlock) and secondHalfBlock
+      final MutableBasicBlock secondHalfBlock = oldBlock.splitBlockLinked(oldBlockPair.getLeft());
+      // arrange links
+      oldBlock.linkSuccessor(0, newBlock);
+      newBlock.linkSuccessor(0, secondHalfBlock);
+      secondHalfBlock.removePredecessorBlock(oldBlock);
+
+      // oldBlock and newBlock have same trapsMap, merge all three blocks
+      if (oldBlock.getExceptionalSuccessors().equals(newBlock.getExceptionalSuccessors())) {
+        // merge blocks and update index of the merged stmts
+        int idx = oldBlock.getStmtCount();
+        tryMergeBlocks(oldBlock, newBlock);
+        for (Stmt stmt : newBlock.getStmts()) {
+          stmtToBlock.put(stmt, new MutablePair<>(idx++, oldBlock));
         }
+        tryMergeBlocks(oldBlock, secondHalfBlock);
+        for (Stmt stmt : secondHalfBlock.getStmts()) {
+          stmtToBlock.put(stmt, new MutablePair<>(idx++, oldBlock));
+        }
+        return oldBlock;
       } else {
-        // update index: for stmts of the split block
+        // oldBlock and newBlock have different trapsMaps
+        // add secondHalfBlock into the graph and update its index
         int idx = 0;
-        for (Stmt stmt : successorBlock.getStmts()) {
-          stmtToBlock.put(stmt, new MutablePair<>(idx++, successorBlock));
+        for (Stmt stmt : secondHalfBlock.getStmts()) {
+          stmtToBlock.put(stmt, new MutablePair<>(idx++, secondHalfBlock));
         }
-        blocks.add(successorBlock);
+        blocks.add(secondHalfBlock);
+        return newBlock;
       }
     }
+  }
 
-    if (beforeStmt == getStartingStmt()) {
-      setStartingStmt(stmts.get(0));
+  private boolean insertable(List<FallsThroughStmt> stmts) {
+    boolean hasIdentity = false;
+    boolean identityBehindAssign = false;
+    for (Stmt stmt : stmts) {
+      if (identityBehindAssign) {
+        return false;
+      }
+      if (stmt instanceof JIfStmt) {
+        return false;
+      }
+      if (stmt instanceof JIdentityStmt) {
+        hasIdentity = true;
+      }
+      if (hasIdentity && !(stmt instanceof JIdentityStmt)) {
+        identityBehindAssign = true;
+      }
     }
+    return true;
   }
 
   /** Replaces all SuccessorEdge(s) of from to oldTo by mewTo */
