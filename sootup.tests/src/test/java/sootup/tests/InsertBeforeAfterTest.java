@@ -6,6 +6,7 @@ import java.nio.file.Paths;
 import java.util.*;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import sootup.core.graph.BasicBlock;
 import sootup.core.graph.MutableBlockStmtGraph;
 import sootup.core.jimple.basic.Local;
 import sootup.core.jimple.basic.StmtPositionInfo;
@@ -70,16 +71,18 @@ public class InsertBeforeAfterTest {
     newLocals.add(l5);
     newLocals.add(l6);
 
-    graph.insertBefore(beforeStmt, Arrays.asList(assign1tol5, assign2tol6), Collections.emptyMap());
+    BasicBlock<?> newBlock =
+        graph.insertBefore(
+            beforeStmt, Arrays.asList(assign1tol5, assign2tol6), Collections.emptyMap());
     Body.BodyBuilder builder = Body.builder(graph);
     builder.setLocals(newLocals);
     builder.setMethodSignature(methodSignature);
     Assertions.assertEquals(8, graph.getBlocks().size());
-    Assertions.assertEquals(2, graph.getBlockOf(assign1tol5).getStmtCount());
+    Assertions.assertEquals(2, newBlock.getStmtCount());
     Assertions.assertEquals(2, graph.getBlockOf(beforeStmt).getStmtCount());
-    Assertions.assertTrue(graph.getBlockOf(assign1tol5).getHead() == assign1tol5);
-    Assertions.assertTrue(graph.getBlockOf(assign1tol5).getTail() == assign2tol6);
-    Assertions.assertEquals(0, graph.getBlockOf(assign1tol5).getExceptionalSuccessors().size());
+    Assertions.assertTrue(newBlock.getHead() == assign1tol5);
+    Assertions.assertTrue(newBlock.getTail() == assign2tol6);
+    Assertions.assertEquals(0, newBlock.getExceptionalSuccessors().size());
     String expectedBody =
         "{\n"
             + "    TrapBlockCheck this;\n"
@@ -140,7 +143,8 @@ public class InsertBeforeAfterTest {
     Trap trap = graph.buildTraps().get(0);
     Map<ClassType, Stmt> trapMap =
         Collections.singletonMap(trap.getExceptionType(), trap.getHandlerStmt());
-    graph.insertBefore(beforeStmt, Arrays.asList(assign1tol5, assign2tol6), trapMap);
+    BasicBlock<?> newBlock =
+        graph.insertBefore(beforeStmt, Arrays.asList(assign1tol5, assign2tol6), trapMap);
 
     Set<Local> newLocals = new HashSet<>(locals);
     newLocals.add(l5);
@@ -150,11 +154,11 @@ public class InsertBeforeAfterTest {
     builder.setMethodSignature(methodSignature);
 
     Assertions.assertEquals(7, graph.getBlocks().size());
-    Assertions.assertEquals(4, graph.getBlockOf(assign1tol5).getStmtCount());
-    Assertions.assertTrue(graph.getBlockOf(beforeStmt) == graph.getBlockOf(assign1tol5));
-    Assertions.assertTrue(graph.getBlockOf(assign1tol5).getHead() == assign1tol5);
-    Assertions.assertTrue(graph.getBlockOf(assign1tol5).getTail().toString().equals("if l1 != l2"));
-    Assertions.assertEquals(1, graph.getBlockOf(assign1tol5).getExceptionalSuccessors().size());
+    Assertions.assertEquals(4, newBlock.getStmtCount());
+    Assertions.assertTrue(graph.getBlockOf(beforeStmt) == newBlock);
+    Assertions.assertTrue(newBlock.getHead() == assign1tol5);
+    Assertions.assertTrue(newBlock.getTail().toString().equals("if l1 != l2"));
+    Assertions.assertEquals(1, newBlock.getExceptionalSuccessors().size());
     String exceptedBody =
         "{\n"
             + "    TrapBlockCheck this;\n"
@@ -199,7 +203,7 @@ public class InsertBeforeAfterTest {
   }
 
   @Test
-  public void testInsertBeforeBlockMiddle3() {
+  public void testInsertBeforeBlockMiddle1() {
 
     MutableBlockStmtGraph graph = new MutableBlockStmtGraph(body.getStmtGraph());
     List<Stmt> stmts = graph.getStmts();
@@ -219,17 +223,18 @@ public class InsertBeforeAfterTest {
     Trap trap = graph.buildTraps().get(0);
     Map<ClassType, Stmt> trapMap =
         Collections.singletonMap(trap.getExceptionType(), trap.getHandlerStmt());
-    graph.insertBefore(beforeStmt, Arrays.asList(assign1tol5, assign2tol6), trapMap);
+    BasicBlock<?> newBlock =
+        graph.insertBefore(beforeStmt, Arrays.asList(assign1tol5, assign2tol6), trapMap);
     Body.BodyBuilder builder = Body.builder(graph);
     builder.setLocals(newLocals);
     builder.setMethodSignature(methodSignature);
 
     Assertions.assertEquals(7, graph.getBlocks().size());
-    Assertions.assertEquals(4, graph.getBlockOf(assign1tol5).getStmtCount());
-    Assertions.assertTrue(graph.getBlockOf(beforeStmt) == graph.getBlockOf(assign1tol5));
-    Assertions.assertTrue(graph.getBlockOf(assign1tol5).getHead().toString().equals("l2 = 0"));
-    Assertions.assertTrue(graph.getBlockOf(assign1tol5).getTail().toString().equals("if l1 != l2"));
-    Assertions.assertEquals(1, graph.getBlockOf(assign1tol5).getExceptionalSuccessors().size());
+    Assertions.assertEquals(4, newBlock.getStmtCount());
+    Assertions.assertTrue(graph.getBlockOf(beforeStmt) == newBlock);
+    Assertions.assertTrue(newBlock.getHead().toString().equals("l2 = 0"));
+    Assertions.assertTrue(newBlock.getTail().toString().equals("if l1 != l2"));
+    Assertions.assertEquals(1, newBlock.getExceptionalSuccessors().size());
 
     String exceptedBody =
         "{\n"
@@ -270,6 +275,85 @@ public class InsertBeforeAfterTest {
             + "\n"
             + " catch java.lang.Exception from label1 to label2 with label2;\n"
             + " catch java.lang.Exception from label3 to label4 with label2;\n"
+            + "}\n";
+    Assertions.assertEquals(exceptedBody, builder.build().toString());
+  }
+
+  @Test
+  public void testInsertBeforeBlockMiddle2() {
+
+    MutableBlockStmtGraph graph = new MutableBlockStmtGraph(body.getStmtGraph());
+    List<Stmt> stmts = graph.getStmts();
+    // middle stmt of a block
+    String s = "if l1 != l2";
+    Stmt beforeStmt = null;
+    for (Stmt stmt : stmts) {
+      if (stmt.toString().equals(s)) {
+        beforeStmt = stmt;
+        break;
+      }
+    }
+
+    Set<Local> newLocals = new HashSet<>(locals);
+    newLocals.add(l5);
+    newLocals.add(l6);
+    BasicBlock<?> newBlock =
+        graph.insertBefore(
+            beforeStmt, Arrays.asList(assign1tol5, assign2tol6), Collections.emptyMap());
+    Body.BodyBuilder builder = Body.builder(graph);
+    builder.setLocals(newLocals);
+    builder.setMethodSignature(methodSignature);
+
+    Assertions.assertEquals(9, graph.getBlocks().size());
+    Assertions.assertEquals(2, newBlock.getStmtCount());
+    Assertions.assertTrue(graph.getBlockOf(beforeStmt) != graph.getBlockOf(assign1tol5));
+    Assertions.assertTrue(newBlock.getHead().toString().equals("l5 = 1"));
+    Assertions.assertTrue(newBlock.getTail().toString().equals("l6 = 2"));
+    Assertions.assertEquals(0, newBlock.getExceptionalSuccessors().size());
+
+    String exceptedBody =
+        "{\n"
+            + "    TrapBlockCheck this;\n"
+            + "    int l5, l6;\n"
+            + "    unknown $stack3, $stack4, l1, l2;\n"
+            + "\n"
+            + "\n"
+            + "    this := @this: TrapBlockCheck;\n"
+            + "    l1 = 0;\n"
+            + "\n"
+            + "  label1:\n"
+            + "    l2 = 0;\n"
+            + "\n"
+            + "  label2:\n"
+            + "    l5 = 1;\n"
+            + "    l6 = 2;\n"
+            + "\n"
+            + "  label3:\n"
+            + "    if l1 != l2 goto label5;\n"
+            + "    l1 = l1 + 1;\n"
+            + "\n"
+            + "    goto label6;\n"
+            + "\n"
+            + "  label4:\n"
+            + "    $stack3 := @caughtexception;\n"
+            + "    l2 = $stack3;\n"
+            + "    $stack4 = new java.lang.RuntimeException;\n"
+            + "    specialinvoke $stack4.<java.lang.RuntimeException: void <init>(java.lang.String)>(\"error rises!\");\n"
+            + "\n"
+            + "    throw $stack4;\n"
+            + "\n"
+            + "  label5:\n"
+            + "    l2 = l2 + 1;\n"
+            + "\n"
+            + "  label6:\n"
+            + "    goto label7;\n"
+            + "\n"
+            + "  label7:\n"
+            + "    return;\n"
+            + "\n"
+            + " catch java.lang.Exception from label1 to label2 with label4;\n"
+            + " catch java.lang.Exception from label3 to label4 with label4;\n"
+            + " catch java.lang.Exception from label5 to label6 with label4;\n"
             + "}\n";
     Assertions.assertEquals(exceptedBody, builder.build().toString());
   }
