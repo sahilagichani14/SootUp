@@ -163,7 +163,7 @@ public class JavaModuleView extends JavaView {
 
       if (!foundClassSources.isEmpty()) {
 
-        return buildClassFrom(foundClassSources.get(0));
+        return Optional.of(buildClassFrom(foundClassSources.get(0)));
       } else {
         PackageName packageName = type.getPackageName();
         if (packageName instanceof ModulePackageName
@@ -189,7 +189,7 @@ public class JavaModuleView extends JavaView {
                 .collect(Collectors.toList());
 
         if (!foundClassSources.isEmpty()) {
-          return buildClassFrom(foundClassSources.get(0));
+          return Optional.of(buildClassFrom(foundClassSources.get(0)));
         } else {
           // automatic module can access the unnamed module -> try to find in classpath (as if
           // modules do not exist)
@@ -231,7 +231,7 @@ public class JavaModuleView extends JavaView {
                     })
                 .findAny();
 
-        return foundClassSources.flatMap(this::buildClassFrom);
+        return foundClassSources.map(this::buildClassFrom);
       }
     }
 
