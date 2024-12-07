@@ -333,11 +333,7 @@ public class JavaModuleView extends JavaView {
                             .map(src -> (JavaSootClassSource) src));
       }
     }
-    return stream
-        .map(this::buildClassFrom)
-        .filter(Optional::isPresent)
-        .map(Optional::get)
-        .collect(Collectors.toList());
+    return stream.map(this::buildClassFrom).collect(Collectors.toList());
   }
 
   /*
