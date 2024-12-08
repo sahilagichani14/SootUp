@@ -1066,11 +1066,16 @@ public class MutableBlockStmtGraph extends MutableStmtGraph {
   }
 
   /*
-   * Note: if there is a stmt branching to the beforeStmt this is not updated to the new stmt
+   * Insert a list of FallsThroughStmts before an existing Stmt in this StmtGraph.
+   * After insertion, all predecessors of the existing Stmt are the predecessors of the first inserted Stmt.
    *
-   * @param existingStmt: the Stmt which succeeds the inserted Stmts (its NOT preceeding as this
+   * Note: if there is a stmt branching to the beforeStmt this is not updated to the new stmt
+   * @param existingStmt: the Stmt which succeeds the inserted Stmts (it is NOT preceeding as this
    *                   simplifies the handling of BranchingStmts)
    * @param stmts: a list of FallsThroughStmts except for IfStmt
+   * @param exceptionMap: trap map of the inserted stmts.
+   *
+   * @return a block containing the inserted Stmts.
    */
   @Nonnull
   public BasicBlock<?> insertBefore(
