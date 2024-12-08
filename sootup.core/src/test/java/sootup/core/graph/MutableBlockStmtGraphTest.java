@@ -19,12 +19,14 @@ import sootup.core.signatures.PackageName;
 import sootup.core.types.ClassType;
 import sootup.core.types.PrimitiveType;
 import sootup.core.types.UnknownType;
+import sootup.core.util.printer.BriefStmtPrinter;
 import sootup.core.util.printer.JimplePrinter;
 
 @Tag("Java8")
 public class MutableBlockStmtGraphTest {
 
   public JimplePrinter jimplePrinter = new JimplePrinter();
+  public final BriefStmtPrinter briefStmtPrinter = new BriefStmtPrinter();
 
   BranchingStmt firstGoto = new JGotoStmt(StmtPositionInfo.getNoStmtPositionInfo());
   JNopStmt firstNop = new JNopStmt(StmtPositionInfo.getNoStmtPositionInfo());
@@ -624,7 +626,7 @@ public class MutableBlockStmtGraphTest {
     graph0.putEdge(stmt2, 0, returnStmt);
 
     {
-      final List<Trap> traps = jimplePrinter.buildTraps(graph0);
+      final List<Trap> traps = briefStmtPrinter.buildTraps(graph0);
       assertEquals(2, traps.size()); // as @caughtexception gets currently in their way.
       assertEquals(stmt2, traps.get(1).getBeginStmt());
       assertEquals(returnStmt, traps.get(1).getEndStmt());
@@ -662,7 +664,7 @@ public class MutableBlockStmtGraphTest {
     graph2.putEdge(stmt2, JGotoStmt.BRANCH_IDX, returnStmt);
     {
       assertEquals(5, graph2.getBlocks().size());
-      final List<Trap> traps = jimplePrinter.buildTraps(graph2);
+      final List<Trap> traps = briefStmtPrinter.buildTraps(graph2);
       assertEquals(2, traps.size());
     }
 
@@ -678,7 +680,7 @@ public class MutableBlockStmtGraphTest {
     graph3.putEdge(stmt3, JGotoStmt.BRANCH_IDX, returnStmt);
 
     {
-      final List<Trap> traps = jimplePrinter.buildTraps(graph3);
+      final List<Trap> traps = briefStmtPrinter.buildTraps(graph3);
       assertEquals(5, graph2.getBlocks().size());
       assertEquals(2, traps.size());
     }
@@ -701,7 +703,7 @@ public class MutableBlockStmtGraphTest {
     graph4.putEdge(stmt2, JGotoStmt.BRANCH_IDX, stmt3);
     graph4.putEdge(stmt3, JGotoStmt.BRANCH_IDX, returnStmt);
 
-    assertEquals(3, jimplePrinter.buildTraps(graph4).size());
+    assertEquals(3, briefStmtPrinter.buildTraps(graph4).size());
 
     // mixed 2
     MutableBlockStmtGraph graph5 = new MutableBlockStmtGraph();
@@ -736,7 +738,7 @@ public class MutableBlockStmtGraphTest {
     graph5.putEdge(stmt3, JGotoStmt.BRANCH_IDX, returnStmt);
 
     {
-      final List<Trap> traps = jimplePrinter.buildTraps(graph5);
+      final List<Trap> traps = briefStmtPrinter.buildTraps(graph5);
       assertEquals(6, traps.size());
       assertEquals(6, graph5.getBlocks().size());
     }
@@ -772,7 +774,7 @@ public class MutableBlockStmtGraphTest {
     graph6.putEdge(stmt2, JGotoStmt.BRANCH_IDX, stmt3);
     graph6.putEdge(stmt3, JGotoStmt.BRANCH_IDX, returnStmt);
     {
-      final List<Trap> traps = jimplePrinter.buildTraps(graph6);
+      final List<Trap> traps = briefStmtPrinter.buildTraps(graph6);
       assertEquals(5, traps.size());
       assertEquals(6, graph6.getBlocks().size());
       assertEquals(
@@ -1056,7 +1058,7 @@ public class MutableBlockStmtGraphTest {
     graph.addExceptionalEdge(stmt1, throwableSig, handlerStmt);
 
     // Verify the trap is present
-    List<Trap> traps = jimplePrinter.buildTraps(graph);
+    List<Trap> traps = briefStmtPrinter.buildTraps(graph);
     assertEquals(1, traps.size());
     assertEquals(stmt1, traps.get(0).getBeginStmt());
     assertEquals(handlerStmt, traps.get(0).getHandlerStmt());
@@ -1065,7 +1067,7 @@ public class MutableBlockStmtGraphTest {
     Trap trapToRemove = traps.get(0);
     graph.removeExceptionalFlowFromAllBlocks(
         trapToRemove.getExceptionType(), trapToRemove.getHandlerStmt());
-    traps = jimplePrinter.buildTraps(graph);
+    traps = briefStmtPrinter.buildTraps(graph);
     assertEquals(0, traps.size());
   }
 
@@ -1099,7 +1101,7 @@ public class MutableBlockStmtGraphTest {
     graph.addExceptionalEdge(stmt2, ioExceptionSig, handlerStmt2);
 
     // Verify both traps are present
-    List<Trap> traps = jimplePrinter.buildTraps(graph);
+    List<Trap> traps = briefStmtPrinter.buildTraps(graph);
     assertEquals(2, traps.size());
 
     // Remove one trap and verify the remaining
@@ -1108,7 +1110,7 @@ public class MutableBlockStmtGraphTest {
 
     graph.removeExceptionalFlowFromAllBlocks(
         trapToRemove.getExceptionType(), trapToRemove.getHandlerStmt());
-    traps = jimplePrinter.buildTraps(graph);
+    traps = briefStmtPrinter.buildTraps(graph);
     assertEquals(1, traps.size());
     assertEquals(stmt2, trapToKeep.getBeginStmt());
     assertEquals(handlerStmt2, trapToKeep.getHandlerStmt());

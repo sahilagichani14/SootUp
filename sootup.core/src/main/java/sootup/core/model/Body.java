@@ -38,6 +38,7 @@ import sootup.core.jimple.common.ref.JThisRef;
 import sootup.core.jimple.common.stmt.*;
 import sootup.core.signatures.MethodSignature;
 import sootup.core.util.EscapedWriter;
+import sootup.core.util.printer.BriefStmtPrinter;
 import sootup.core.util.printer.JimplePrinter;
 
 /**
@@ -117,7 +118,7 @@ public class Body implements HasPosition {
   @Nonnull
   @Deprecated()
   public List<Trap> getTraps() {
-    return new JimplePrinter().buildTraps(graph);
+    return new BriefStmtPrinter().buildTraps(graph);
   }
 
   /** Return unit containing the \@this-assignment * */

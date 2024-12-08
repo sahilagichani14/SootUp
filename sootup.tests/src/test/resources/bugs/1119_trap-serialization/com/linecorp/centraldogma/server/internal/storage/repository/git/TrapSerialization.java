@@ -9,16 +9,16 @@ public class TrapSerialization {
         Object var19;
         try {
             try {
-                var19 = 10;
+                var19 = 10;  // Label1
                 throw new Exception();
             } catch (Exception e) {
-                var19 = 20;
+                var19 = 20;  // Label2
                 throw new Exception(e);
             } finally {
-                var19 = 30;
+                var19 = 30; // Label5
             }
         } catch (Exception ex) {
-            var19 = 40;
+            var19 = 40;  // Label3
         }
         return (Integer) var19;
     }
