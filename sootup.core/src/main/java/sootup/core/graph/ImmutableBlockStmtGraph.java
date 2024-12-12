@@ -26,7 +26,6 @@ import com.google.common.collect.Lists;
 import java.util.*;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import sootup.core.jimple.basic.Trap;
 import sootup.core.jimple.common.stmt.Stmt;
 import sootup.core.types.ClassType;
 

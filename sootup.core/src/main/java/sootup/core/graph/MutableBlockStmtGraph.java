@@ -22,7 +22,6 @@ package sootup.core.graph;
  * #L%
  */
 
-import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.Lists;
 import java.util.*;
 import javax.annotation.Nonnull;

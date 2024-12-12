@@ -22,12 +22,10 @@ package sootup.core.util.printer;
  * #L%
  */
 
+import com.google.common.collect.ComparisonChain;
 import java.util.*;
 import javax.annotation.Nonnull;
-
-import com.google.common.collect.ComparisonChain;
-import sootup.core.graph.BasicBlock;
-import sootup.core.graph.StmtGraph;
+import sootup.core.graph.*;
 import sootup.core.jimple.Jimple;
 import sootup.core.jimple.basic.Trap;
 import sootup.core.jimple.common.ref.IdentityRef;
@@ -109,16 +107,15 @@ public abstract class LabeledStmtPrinter extends AbstractStmtPrinter {
    *
    * @return the linearized StmtGraph
    */
-  public Iterable<Stmt> initializeSootMethod(@Nonnull StmtGraph<?> stmtGraph) {
+  public Iterable<Stmt> initializeSootMethod(@Nonnull StmtGraph<?> stmtGraph, List<Trap> traps) {
     this.graph = stmtGraph;
-    final List<Stmt> linearizedStmtGraph = getStmts(stmtGraph);
+    final List<Stmt> linearizedStmtGraph = getStmts(stmtGraph, traps);
     return linearizedStmtGraph;
   }
 
   @Nonnull
-  public List<Stmt> getStmts(@Nonnull StmtGraph<?> stmtGraph) {
-    final Collection<Stmt> targetStmtsOfBranches = getLabeledStmts(stmtGraph);
-    final List<Trap> traps = buildTraps(stmtGraph);
+  public List<Stmt> getStmts(@Nonnull StmtGraph<?> stmtGraph, List<Trap> traps) {
+    final Collection<Stmt> targetStmtsOfBranches = getLabeledStmts(stmtGraph, traps);
 
     final int maxEstimatedSize = targetStmtsOfBranches.size() + traps.size() * 3;
     labels = new HashMap<>(maxEstimatedSize, 1);
@@ -140,7 +137,7 @@ public abstract class LabeledStmtPrinter extends AbstractStmtPrinter {
     // or is the begin of a trap-range) or does it mark the end of a trap range
     // does it need a label
     for (Stmt stmt : targetStmtsOfBranches) {
-      if ((stmt instanceof JNopStmt) || stmtGraph.isStmtBranchTarget(stmt) || trapStmts.contains(stmt)) {
+      if (trapStmts.contains(stmt) || stmtGraph.isStmtBranchTarget(stmt)) {
         labelStmts.add(stmt);
       } else {
         refStmts.add(stmt);
@@ -167,6 +164,15 @@ public abstract class LabeledStmtPrinter extends AbstractStmtPrinter {
         references.put(s, Integer.toString(refCount++));
       }
     }
+
+    // add Nop Stmt to Jimple just for serialization
+    for (Stmt s : targetStmtsOfBranches) {
+      if (s instanceof JNopStmt) {
+        linearizedStmtGraph.add(s);
+        labels.put(s, String.format(formatString, ++labelCount));
+      }
+    }
+
     return linearizedStmtGraph;
   }
 
@@ -233,12 +239,12 @@ public abstract class LabeledStmtPrinter extends AbstractStmtPrinter {
   /** Comparator which sorts the trap output in getTraps() */
   public Comparator<Trap> getTrapComparator(@Nonnull Map<Stmt, Integer> stmtsBlockIdx) {
     return (a, b) ->
-            ComparisonChain.start()
-                    .compare(stmtsBlockIdx.get(a.getBeginStmt()), stmtsBlockIdx.get(b.getBeginStmt()))
-                    .compare(stmtsBlockIdx.get(a.getEndStmt()), stmtsBlockIdx.get(b.getEndStmt()))
-                    // [ms] would be nice to have the traps ordered by exception hierarchy as well
-                    .compare(a.getExceptionType().toString(), b.getExceptionType().toString())
-                    .result();
+        ComparisonChain.start()
+            .compare(stmtsBlockIdx.get(a.getBeginStmt()), stmtsBlockIdx.get(b.getBeginStmt()))
+            .compare(stmtsBlockIdx.get(a.getEndStmt()), stmtsBlockIdx.get(b.getEndStmt()))
+            // [ms] would be nice to have the traps ordered by exception hierarchy as well
+            .compare(a.getExceptionType().toString(), b.getExceptionType().toString())
+            .result();
   }
 
   /**
@@ -252,23 +258,25 @@ public abstract class LabeledStmtPrinter extends AbstractStmtPrinter {
    * @return A collection of all the Stmts that are targets of a BranchingStmt
    */
   @Nonnull
-  public Collection<Stmt> getLabeledStmts(StmtGraph stmtGraph) {
+  public Collection<Stmt> getLabeledStmts(StmtGraph stmtGraph, List<Trap> traps) {
     Set<Stmt> stmtList = new HashSet<>();
     Collection<Stmt> stmtGraphNodes = stmtGraph.getNodes();
     for (Stmt stmt : stmtGraphNodes) {
       if (stmt instanceof BranchingStmt) {
         if (stmt instanceof JIfStmt) {
-          stmtList.add((Stmt) stmtGraph.getBranchTargetsOf((JIfStmt) stmt).get(JIfStmt.FALSE_BRANCH_IDX));
+          stmtList.add(
+              (Stmt) stmtGraph.getBranchTargetsOf((JIfStmt) stmt).get(JIfStmt.FALSE_BRANCH_IDX));
         } else if (stmt instanceof JGotoStmt) {
           // [ms] bounds are validated in Body if its a valid StmtGraph
-          stmtList.add((Stmt) stmtGraph.getBranchTargetsOf((JGotoStmt) stmt).get(JGotoStmt.BRANCH_IDX));
+          stmtList.add(
+              (Stmt) stmtGraph.getBranchTargetsOf((JGotoStmt) stmt).get(JGotoStmt.BRANCH_IDX));
         } else if (stmt instanceof JSwitchStmt) {
           stmtList.addAll(stmtGraph.getBranchTargetsOf((BranchingStmt) stmt));
         }
       }
     }
 
-    for (Trap trap : buildTraps(stmtGraph)) {
+    for (Trap trap : traps) {
       stmtList.add(trap.getBeginStmt());
       stmtList.add(trap.getEndStmt());
       stmtList.add(trap.getHandlerStmt());

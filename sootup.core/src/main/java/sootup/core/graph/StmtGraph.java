@@ -29,7 +29,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import sootup.core.jimple.basic.Trap;
 import sootup.core.jimple.common.ref.IdentityRef;
 import sootup.core.jimple.common.ref.JCaughtExceptionRef;
 import sootup.core.jimple.common.stmt.*;
@@ -202,9 +201,9 @@ public abstract class StmtGraph<V extends BasicBlock<V>> implements Iterable<Stm
   public void validateStmtConnectionsInGraph() {
     try {
       List<Stmt> handlerStmts = new ArrayList<>();
-      for (Stmt stmt: getNodes()){
+      for (Stmt stmt : getNodes()) {
         if (stmt instanceof JIdentityStmt) {
-          //JThrowStmt?
+          // JThrowStmt?
           IdentityRef rightOp = ((JIdentityStmt) stmt).getRightOp();
           if (rightOp instanceof JCaughtExceptionRef) {
             handlerStmts.add(stmt);
@@ -219,8 +218,7 @@ public abstract class StmtGraph<V extends BasicBlock<V>> implements Iterable<Stm
         if (predecessors(stmt).isEmpty()) {
 
           if (!(stmt == getStartingStmt()
-              || handlerStmts.stream()
-                  .anyMatch(handler -> handler == stmt))) {
+              || handlerStmts.stream().anyMatch(handler -> handler == stmt))) {
             throw new IllegalStateException(
                 "Stmt '"
                     + stmt

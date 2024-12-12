@@ -22,7 +22,10 @@ package sootup.core.util.printer;
  * #L%
  */
 
-import com.google.common.collect.ComparisonChain;
+import java.io.PrintWriter;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import sootup.core.graph.*;
 import sootup.core.jimple.Jimple;
 import sootup.core.jimple.basic.Local;
@@ -34,12 +37,6 @@ import sootup.core.signatures.MethodSignature;
 import sootup.core.signatures.PackageName;
 import sootup.core.types.ClassType;
 import sootup.core.types.Type;
-
-import javax.annotation.Nonnull;
-import java.io.PrintWriter;
-import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 /**
  * Prints out a class and all its methods.
@@ -339,7 +336,8 @@ public class JimplePrinter {
   }
 
   private void printStmts(StmtGraph<?> stmtGraph, LabeledStmtPrinter printer) {
-    Iterable<Stmt> linearizedStmtGraph = printer.initializeSootMethod(stmtGraph);
+    final List<Trap> traps = printer.buildTraps(stmtGraph);
+    Iterable<Stmt> linearizedStmtGraph = printer.initializeSootMethod(stmtGraph, traps);
 
     Stmt previousStmt;
 
@@ -357,10 +355,10 @@ public class JimplePrinter {
         // a trap)
 
         final boolean currentStmtHasLabel = labels.get(currentStmt) != null;
-        if (previousStmt.branches()
+        if (currentStmtHasLabel
+            || previousStmt.branches()
             || stmtGraph.predecessors(currentStmt).size() != 1
-            || previousStmt.getExpectedSuccessorCount() == 0
-            || currentStmtHasLabel) {
+            || previousStmt.getExpectedSuccessorCount() == 0) {
           printer.newline();
         }
 
@@ -383,7 +381,7 @@ public class JimplePrinter {
 
     // Print out exceptions
     {
-      Iterator<Trap> trapIt = printer.buildTraps(stmtGraph).iterator();
+      Iterator<Trap> trapIt = traps.iterator();
 
       if (trapIt.hasNext()) {
         printer.newline();
