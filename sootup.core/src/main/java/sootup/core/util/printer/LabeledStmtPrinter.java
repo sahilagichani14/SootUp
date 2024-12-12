@@ -167,7 +167,7 @@ public abstract class LabeledStmtPrinter extends AbstractStmtPrinter {
 
     // add Nop Stmt to Jimple just for serialization
     for (Stmt s : targetStmtsOfBranches) {
-      if (s instanceof JNopStmt) {
+      if (trapStmts.contains(s) && s instanceof JNopStmt) {
         linearizedStmtGraph.add(s);
         labels.put(s, String.format(formatString, ++labelCount));
       }
