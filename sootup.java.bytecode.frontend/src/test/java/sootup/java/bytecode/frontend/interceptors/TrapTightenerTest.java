@@ -24,7 +24,6 @@ import sootup.core.types.ClassType;
 import sootup.core.types.VoidType;
 import sootup.core.util.ImmutableUtils;
 import sootup.core.util.printer.BriefStmtPrinter;
-import sootup.core.util.printer.JimplePrinter;
 import sootup.interceptors.TrapTightener;
 import sootup.java.core.JavaIdentifierFactory;
 import sootup.java.core.language.JavaJimple;
@@ -35,7 +34,6 @@ import sootup.java.core.views.JavaView;
 @Tag(TestCategories.JAVA_8_CATEGORY)
 @Disabled("FIXME: needs .setTraps() adapted to MutableBlockStmtGraph")
 public class TrapTightenerTest {
-  public JimplePrinter jimplePrinter = new JimplePrinter();
   public final BriefStmtPrinter briefStmtPrinter = new BriefStmtPrinter();
 
   JavaIdentifierFactory factory = JavaIdentifierFactory.getInstance();

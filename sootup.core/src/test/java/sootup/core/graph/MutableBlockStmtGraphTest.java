@@ -20,12 +20,10 @@ import sootup.core.types.ClassType;
 import sootup.core.types.PrimitiveType;
 import sootup.core.types.UnknownType;
 import sootup.core.util.printer.BriefStmtPrinter;
-import sootup.core.util.printer.JimplePrinter;
 
 @Tag("Java8")
 public class MutableBlockStmtGraphTest {
 
-  public JimplePrinter jimplePrinter = new JimplePrinter();
   public final BriefStmtPrinter briefStmtPrinter = new BriefStmtPrinter();
 
   BranchingStmt firstGoto = new JGotoStmt(StmtPositionInfo.getNoStmtPositionInfo());
