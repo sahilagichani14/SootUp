@@ -908,6 +908,9 @@ public class MutableBlockStmtGraph extends MutableStmtGraph {
       blockOfRemovedStmt.clearPredecessorBlocks();
       blockOfRemovedStmt.clearSuccessorBlocks();
       blockOfRemovedStmt.clearExceptionalSuccessorBlocks();
+
+      clearBlockFromAllExceptionalBlocks(blockOfRemovedStmt);
+
       blockOfRemovedStmt.removeStmt(blockOfRemovedStmtPair.getLeft());
       blocks.remove(blockOfRemovedStmt);
 
@@ -975,6 +978,27 @@ public class MutableBlockStmtGraph extends MutableStmtGraph {
       }
     }
     stmtToBlock.remove(stmt);
+  }
+
+  public void clearBlockFromAllExceptionalBlocks(MutableBasicBlock blockOfRemovedStmt) {
+    // Remove blockOfRemovedStmt from all exceptionalBlocks in MutableBlockStmtGraph
+    for (Iterator<MutableBasicBlock> iterator = blocks.iterator(); iterator.hasNext(); ) {
+      MutableBasicBlock block = iterator.next();
+      Collection<MutableBasicBlock> blockExceptionalSuccessors =
+          block.getExceptionalSuccessors().values();
+      if (!blockExceptionalSuccessors.isEmpty()) {
+        for (MutableBasicBlock exceptionalBlock : blockExceptionalSuccessors) {
+          List<MutableBasicBlock> exceptionalBlockSuccessors = exceptionalBlock.getSuccessors();
+          List<MutableBasicBlock> exceptionalBlockPredecessors = exceptionalBlock.getPredecessors();
+          if (exceptionalBlockPredecessors.contains(blockOfRemovedStmt)) {
+            exceptionalBlock.removePredecessorBlock(blockOfRemovedStmt);
+          }
+          if (exceptionalBlockSuccessors.contains(blockOfRemovedStmt)) {
+            exceptionalBlock.removeFromSuccessorBlocks(blockOfRemovedStmt);
+          }
+        }
+      }
+    }
   }
 
   @Override
