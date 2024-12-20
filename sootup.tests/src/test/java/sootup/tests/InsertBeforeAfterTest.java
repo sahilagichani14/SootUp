@@ -18,7 +18,6 @@ import sootup.core.model.Body;
 import sootup.core.model.SourceType;
 import sootup.core.signatures.MethodSignature;
 import sootup.core.types.ClassType;
-import sootup.core.util.DotExporter;
 import sootup.java.bytecode.frontend.inputlocation.PathBasedAnalysisInputLocation;
 import sootup.java.core.JavaIdentifierFactory;
 import sootup.java.core.language.JavaJimple;
@@ -667,21 +666,5 @@ public class InsertBeforeAfterTest {
             + " catch java.lang.Exception from label5 to label6 with label4;\n"
             + "}\n";
     Assertions.assertEquals(exceptedBody, builder.build().toString());
-  }
-
-  @Test
-  public void testErrors() {
-    ClassType clazzType = factory.getClassType("TrapSSA");
-    MethodSignature methodSignature =
-        factory.getMethodSignature(
-            clazzType, "main", "void", Collections.singletonList("java.lang.String[]"));
-    final Path path = Paths.get(location + "TrapSSA.class");
-    PathBasedAnalysisInputLocation inputLocation =
-        new PathBasedAnalysisInputLocation.ClassFileBasedAnalysisInputLocation(
-            path, "", SourceType.Application);
-    JavaView view = new JavaView(inputLocation);
-    Body body = view.getMethod(methodSignature).get().getBody();
-    System.out.println(DotExporter.createUrlToWebeditor(body.getStmtGraph()));
-    System.out.println(body);
   }
 }

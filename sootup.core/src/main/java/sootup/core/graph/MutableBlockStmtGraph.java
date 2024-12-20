@@ -1369,8 +1369,8 @@ public class MutableBlockStmtGraph extends MutableStmtGraph {
                 .values()
                 .forEach(
                     eb -> {
+                      // blockA is in eb's predecessors list, because A and B have same ebs.
                       eb.removePredecessorBlock(blockB);
-                      eb.addPredecessorBlock(blockA);
                     });
 
           } else {
