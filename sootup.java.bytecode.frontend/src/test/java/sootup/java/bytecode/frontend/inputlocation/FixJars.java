@@ -1,6 +1,8 @@
 package sootup.java.bytecode.frontend.inputlocation;
 
 import categories.TestCategories;
+import java.nio.file.Paths;
+import java.util.Collections;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import sootup.core.inputlocation.AnalysisInputLocation;
@@ -11,20 +13,27 @@ import sootup.java.core.views.JavaView;
 import sootup.jimple.frontend.JimpleAnalysisInputLocation;
 import sootup.jimple.frontend.JimpleView;
 
-import java.nio.file.Paths;
-import java.util.Collections;
-import java.util.concurrent.atomic.AtomicReference;
-
 @Tag(TestCategories.JAVA_8_CATEGORY)
 public class FixJars extends BaseFixJarsTest {
 
   @Test
   public void executeexamcorejar() {
-    AnalysisInputLocation inputLocation = new JimpleAnalysisInputLocation(Paths.get("./src/test/resources/"), SourceType.Application, Collections.singletonList(new NopEliminator()));
+    AnalysisInputLocation inputLocation =
+        new JimpleAnalysisInputLocation(
+            Paths.get("./src/test/resources/"),
+            SourceType.Application,
+            Collections.singletonList(new NopEliminator()));
     JimpleView jimpleView = new JimpleView(inputLocation);
-    jimpleView.getClasses().forEach(sootClass -> {
-      Body body = sootClass.getMethodsByName("nopEliminatorBug").stream().findFirst().get().getBody();
-    });
+    jimpleView
+        .getClasses()
+        .forEach(
+            sootClass -> {
+              Body body =
+                  sootClass.getMethodsByName("nopEliminatorBug").stream()
+                      .findFirst()
+                      .get()
+                      .getBody();
+            });
   }
 
   @Test
