@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import sootup.core.graph.MutableBlockStmtGraph;
 import sootup.core.jimple.basic.Local;
 import sootup.core.jimple.basic.StmtPositionInfo;
+import sootup.core.jimple.basic.Trap;
 import sootup.core.jimple.common.constant.IntConstant;
 import sootup.core.jimple.common.ref.IdentityRef;
 import sootup.core.jimple.common.stmt.*;
@@ -85,7 +86,8 @@ public class StaticSingleAssignmentFormerTest {
 
   FallsThroughStmt handlerStmt =
       JavaJimple.newIdentityStmt(stack4, caughtExceptionRef, noStmtPositionInfo);
-  JAssignStmt l2eq2 = JavaJimple.newAssignStmt(l2, IntConstant.getInstance(2), noStmtPositionInfo);
+  JAssignStmt assign2tol2 =
+      JavaJimple.newAssignStmt(l2, IntConstant.getInstance(2), noStmtPositionInfo);
   JGotoStmt gotoStmt = JavaJimple.newGotoStmt(noStmtPositionInfo);
 
   @Test
@@ -136,28 +138,110 @@ public class StaticSingleAssignmentFormerTest {
   }
 
   @Test
-  // todo: delete after correction, some blocks has redundant predecessors
-  // todo: [$stack14 := @caughtexception ... throw $l14]
   public void testSSA2() {
     ClassType clazzType = factory.getClassType("TrapSSA");
     MethodSignature methodSignature =
         factory.getMethodSignature(
             clazzType, "main", "void", Collections.singletonList("java.lang.String[]"));
     final Path path = Paths.get(location + "TrapSSA.class");
-    PathBasedAnalysisInputLocation inputLocation =
-        new PathBasedAnalysisInputLocation.ClassFileBasedAnalysisInputLocation(
-            path, "", SourceType.Application);
     PathBasedAnalysisInputLocation inputLocationWithSSA =
         new PathBasedAnalysisInputLocation.ClassFileBasedAnalysisInputLocation(
             path,
             "",
             SourceType.Application,
             Collections.singletonList(new StaticSingleAssignmentFormer()));
-    JavaView view = new JavaView(inputLocation);
     JavaView viewSSA = new JavaView(inputLocationWithSSA);
-    Body body = view.getMethod(methodSignature).get().getBody();
     Body bodyAfterSSA = viewSSA.getMethod(methodSignature).get().getBody();
-    // System.out.println(bodyAfterSSA);
+    String expectedBodyString =
+        "{\n"
+            + "    java.lang.String[] l0, l0#0;\n"
+            + "    unknown $stack10, $stack10#17, $stack11, $stack11#16, $stack12, $stack12#12, $stack13, $stack13#10, $stack14, $stack14#7, $stack15, $stack15#14, $stack7, $stack7#1, $stack8, $stack8#4, $stack9, $stack9#5, l1, l1#6, l2, l2#2, l3, l3#3, l3#9, l4, l4#15, l4#8, l5, l5#11, l6, l6#13;\n"
+            + "\n"
+            + "\n"
+            + "    l0#0 := @parameter0: java.lang.String[];\n"
+            + "    $stack7#1 = new java.io.ByteArrayOutputStream;\n"
+            + "    specialinvoke $stack7#1.<java.io.ByteArrayOutputStream: void <init>()>();\n"
+            + "    l2#2 = $stack7#1;\n"
+            + "    l3#3 = null;\n"
+            + "\n"
+            + "  label01:\n"
+            + "    $stack8#4 = l0#0[0];\n"
+            + "    $stack9#5 = virtualinvoke $stack8#4.<java.lang.String: byte[] getBytes(java.lang.String)>(\"UTF-8\");\n"
+            + "    virtualinvoke l2#2.<java.io.ByteArrayOutputStream: void write(byte[])>($stack9#5);\n"
+            + "    l1#6 = virtualinvoke l2#2.<java.io.ByteArrayOutputStream: byte[] toByteArray()>();\n"
+            + "\n"
+            + "  label02:\n"
+            + "    if l2#2 == null goto label13;\n"
+            + "\n"
+            + "    if l3#3 == null goto label06;\n"
+            + "\n"
+            + "  label03:\n"
+            + "    virtualinvoke l2#2.<java.io.ByteArrayOutputStream: void close()>();\n"
+            + "\n"
+            + "  label04:\n"
+            + "    goto label13;\n"
+            + "\n"
+            + "  label05:\n"
+            + "    $stack15#14 := @caughtexception;\n"
+            + "    l4#15 = $stack15#14;\n"
+            + "    virtualinvoke l3#3.<java.lang.Throwable: void addSuppressed(java.lang.Throwable)>(l4#15);\n"
+            + "\n"
+            + "    goto label13;\n"
+            + "\n"
+            + "  label06:\n"
+            + "    virtualinvoke l2#2.<java.io.ByteArrayOutputStream: void close()>();\n"
+            + "\n"
+            + "    goto label13;\n"
+            + "\n"
+            + "  label07:\n"
+            + "    $stack14#7 := @caughtexception;\n"
+            + "    l4#8 = $stack14#7;\n"
+            + "    l3#9 = l4#8;\n"
+            + "\n"
+            + "    throw l4#8;\n"
+            + "\n"
+            + "  label08:\n"
+            + "    $stack13#10 := @caughtexception;\n"
+            + "    l5#11 = $stack13#10;\n"
+            + "\n"
+            + "  label09:\n"
+            + "    if l2#2 == null goto label15;\n"
+            + "\n"
+            + "    if l3#9 == null goto label14;\n"
+            + "\n"
+            + "  label10:\n"
+            + "    virtualinvoke l2#2.<java.io.ByteArrayOutputStream: void close()>();\n"
+            + "\n"
+            + "  label11:\n"
+            + "    goto label15;\n"
+            + "\n"
+            + "  label12:\n"
+            + "    $stack12#12 := @caughtexception;\n"
+            + "    l6#13 = $stack12#12;\n"
+            + "    virtualinvoke l3#9.<java.lang.Throwable: void addSuppressed(java.lang.Throwable)>(l6#13);\n"
+            + "\n"
+            + "    goto label15;\n"
+            + "\n"
+            + "  label13:\n"
+            + "    $stack11#16 = <java.lang.System: java.io.PrintStream out>;\n"
+            + "    $stack10#17 = new java.lang.String;\n"
+            + "    specialinvoke $stack10#17.<java.lang.String: void <init>(byte[],java.lang.String)>(l1#6, \"UTF-8\");\n"
+            + "    virtualinvoke $stack11#16.<java.io.PrintStream: void println(java.lang.String)>($stack10#17);\n"
+            + "\n"
+            + "    return;\n"
+            + "\n"
+            + "  label14:\n"
+            + "    virtualinvoke l2#2.<java.io.ByteArrayOutputStream: void close()>();\n"
+            + "\n"
+            + "  label15:\n"
+            + "    throw l5#11;\n"
+            + "\n"
+            + " catch java.lang.Throwable from label01 to label02 with label07;\n"
+            + " catch java.lang.Throwable from label03 to label04 with label05;\n"
+            + " catch java.lang.Throwable from label07 to label09 with label08;\n"
+            + " catch java.lang.Throwable from label10 to label11 with label12;\n"
+            + "}\n";
+    assertEquals(expectedBodyString, bodyAfterSSA.toString());
   }
 
   @Test
@@ -291,49 +375,40 @@ public class StaticSingleAssignmentFormerTest {
    *    l2 = l1
    *    l3 = l3 + 1
    *    goto label4
-   * label3:
+   * label4:
    *    goto label1
    * </pre>
    */
   private Body.BodyBuilder createBody() {
     MutableBlockStmtGraph graph = new MutableBlockStmtGraph();
-
-    // Block 0
-    graph.setStartingStmt(startingStmt);
-    graph.putEdge(startingStmt, assign1tol1);
-    graph.putEdge(assign1tol1, assign1tol2);
-    graph.putEdge(assign1tol2, assign0tol3);
-
-    // block 1
-    graph.putEdge(assign0tol3, ifStmt);
-
-    // block 2
-    graph.putEdge(ifStmt, JIfStmt.TRUE_BRANCH_IDX, ifStmt2);
-
-    // block 3
-    graph.putEdge(ifStmt, JIfStmt.FALSE_BRANCH_IDX, returnStmt);
-
-    // block 4
-    graph.putEdge(ifStmt2, JIfStmt.TRUE_BRANCH_IDX, assignl1tol2);
-    graph.putEdge(assignl1tol2, assignl3plus1tol3);
-    graph.putEdge(assignl3plus1tol3, gotoStmt1);
-
-    // block 5
-    graph.putEdge(ifStmt2, JIfStmt.FALSE_BRANCH_IDX, assignl3tol2);
-    graph.putEdge(assignl3tol2, assignl3plus2tol3);
-    graph.putEdge(assignl3plus2tol3, gotoStmt2);
-
-    // block 6
-    graph.putEdge(gotoStmt1, JGotoStmt.BRANCH_IDX, gotoStmt);
-    graph.putEdge(gotoStmt2, JGotoStmt.BRANCH_IDX, gotoStmt);
-    graph.putEdge(gotoStmt, JGotoStmt.BRANCH_IDX, ifStmt);
-
     Body.BodyBuilder builder = Body.builder(graph);
     builder.setMethodSignature(methodSignature);
 
     // build set locals
     Set<Local> locals = ImmutableUtils.immutableSet(l0, l1, l2, l3);
     builder.setLocals(locals);
+
+    // create blocks
+    List<List<Stmt>> blocks =
+        Arrays.asList(
+            Collections.singletonList(startingStmt),
+            Arrays.asList(assign1tol1, assign1tol2, assign0tol3),
+            Collections.singletonList(ifStmt),
+            Collections.singletonList(returnStmt),
+            Collections.singletonList(ifStmt2),
+            Arrays.asList(assignl3tol2, assignl3plus2tol3, gotoStmt1),
+            Arrays.asList(assignl1tol2, assignl3plus1tol3, gotoStmt2),
+            Collections.singletonList(gotoStmt));
+
+    // create maps
+    Map<BranchingStmt, List<Stmt>> successorMap = new HashMap<>();
+    successorMap.put(ifStmt, Collections.singletonList(ifStmt2));
+    successorMap.put(ifStmt2, Collections.singletonList(assignl1tol2));
+    successorMap.put(gotoStmt1, Collections.singletonList(gotoStmt));
+    successorMap.put(gotoStmt2, Collections.singletonList(gotoStmt));
+    successorMap.put(gotoStmt, Collections.singletonList(ifStmt));
+
+    graph.initializeWith(blocks, successorMap, Collections.emptyList());
 
     return builder;
   }
@@ -366,56 +441,45 @@ public class StaticSingleAssignmentFormerTest {
    * label6:
    *    goto label1
    *
-   * catch Exception from label3 to label5 with label5
+   * catch Exception from label3 to label4 with label5
    * </pre>
    */
   private Body.BodyBuilder createTrapBody() {
     MutableBlockStmtGraph graph = new MutableBlockStmtGraph();
-
-    // Block 0
-    graph.setStartingStmt(startingStmt);
-    graph.putEdge(startingStmt, assign1tol1);
-    graph.putEdge(assign1tol1, assign1tol2);
-    graph.putEdge(assign1tol2, assign0tol3);
-
-    // block 1
-    graph.putEdge(assign0tol3, ifStmt);
-
-    // block 2
-    graph.putEdge(ifStmt, JIfStmt.TRUE_BRANCH_IDX, ifStmt2);
-
-    // block 3
-    graph.putEdge(ifStmt, JIfStmt.FALSE_BRANCH_IDX, returnStmt);
-
-    // block 4
-    graph.putEdge(ifStmt2, JIfStmt.TRUE_BRANCH_IDX, assignl1tol2);
-
-    // block 5 exceptional block
-    graph.addNode(assignl1tol2, Collections.singletonMap(exceptionType, handlerStmt));
-    graph.putEdge(handlerStmt, l2eq2);
-    graph.putEdge(l2eq2, gotoStmt3);
-
-    // block 6
-    graph.putEdge(gotoStmt3, JGotoStmt.BRANCH_IDX, assignl3plus1tol3);
-    graph.putEdge(assignl1tol2, assignl3plus1tol3);
-    graph.putEdge(assignl3plus1tol3, gotoStmt1);
-
-    // block 7
-    graph.putEdge(ifStmt2, JIfStmt.FALSE_BRANCH_IDX, assignl3tol2);
-    graph.putEdge(assignl3tol2, assignl3plus2tol3);
-    graph.putEdge(assignl3plus2tol3, gotoStmt2);
-
-    // block 8
-    graph.putEdge(gotoStmt1, JGotoStmt.BRANCH_IDX, gotoStmt);
-    graph.putEdge(gotoStmt2, JGotoStmt.BRANCH_IDX, gotoStmt);
-    graph.putEdge(gotoStmt, JGotoStmt.BRANCH_IDX, ifStmt);
-
     Body.BodyBuilder builder = Body.builder(graph);
     builder.setMethodSignature(methodSignature);
 
     // build set locals
     Set<Local> locals = ImmutableUtils.immutableSet(l0, l1, l2, l3, stack4);
     builder.setLocals(locals);
+
+    // create blocks
+    List<List<Stmt>> blocks =
+        Arrays.asList(
+            Collections.singletonList(startingStmt),
+            Arrays.asList(assign1tol1, assign1tol2, assign0tol3),
+            Collections.singletonList(ifStmt),
+            Collections.singletonList(returnStmt),
+            Collections.singletonList(ifStmt2),
+            Arrays.asList(assignl3tol2, assignl3plus2tol3, gotoStmt1),
+            Collections.singletonList(assignl1tol2),
+            Arrays.asList(assignl3plus1tol3, gotoStmt2),
+            Arrays.asList(handlerStmt, assign2tol2, gotoStmt3),
+            Collections.singletonList(gotoStmt));
+
+    // create maps
+    Map<BranchingStmt, List<Stmt>> successorMap = new HashMap<>();
+    successorMap.put(ifStmt, Collections.singletonList(ifStmt2));
+    successorMap.put(ifStmt2, Collections.singletonList(assignl1tol2));
+    successorMap.put(gotoStmt1, Collections.singletonList(gotoStmt));
+    successorMap.put(gotoStmt2, Collections.singletonList(gotoStmt));
+    successorMap.put(gotoStmt3, Collections.singletonList(assignl3plus1tol3));
+    successorMap.put(gotoStmt, Collections.singletonList(ifStmt));
+
+    // create trap map
+    Trap trap = new Trap(exceptionType, assignl1tol2, assignl3plus1tol3, handlerStmt);
+
+    graph.initializeWith(blocks, successorMap, Collections.singletonList(trap));
 
     return builder;
   }
