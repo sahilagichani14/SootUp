@@ -61,4 +61,9 @@ public class MethodSignature extends SootClassMemberSignature<MethodSubSignature
   public int getParameterCount() {
     return this.getSubSignature().getParameterTypes().size();
   }
+
+  @Nonnull
+  public Type getParameterType(int n) {
+    return getParameterTypes().get(n);
+  }
 }
