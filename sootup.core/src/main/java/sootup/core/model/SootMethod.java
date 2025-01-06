@@ -162,7 +162,6 @@ public class SootMethod extends SootClassMember<MethodSignature> implements Meth
     return getSignature().getSubSignature();
   }
 
-
   @Nonnull
   public List<Type> getParameterTypes() {
     return getSignature().getParameterTypes();
