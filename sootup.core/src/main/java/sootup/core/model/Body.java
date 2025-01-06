@@ -26,9 +26,11 @@ import com.google.common.collect.Lists;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import org.apache.commons.lang3.tuple.Pair;
 import sootup.core.graph.MutableBlockStmtGraph;
 import sootup.core.graph.MutableStmtGraph;
 import sootup.core.graph.StmtGraph;
@@ -497,21 +499,16 @@ public class Body implements HasPosition {
   }
 
   /**
-   * Collects all using statements of a Local from a list of statements
+   * Collects all using statements of a Values from a list of statements
    *
    * @param stmts The searched list of statements
-   * @return A map of Locals and their using statements
+   * @return A map of Values and their using statements
    */
-  public static Map<Value, Collection<Stmt>> collectUses(Collection<Stmt> stmts) {
-    Map<Value, Collection<Stmt>> allUses = new HashMap<>();
-    for (Stmt stmt : stmts) {
-      for (Iterator<Value> iterator = stmt.getUses().iterator(); iterator.hasNext(); ) {
-        Value value = iterator.next();
-        Collection<Stmt> localUses = allUses.computeIfAbsent(value, key -> new ArrayList<>());
-        localUses.add(stmt);
-        allUses.put(value, localUses);
-      }
-    }
-    return allUses;
+  public static Map<Value, List<Stmt>> collectUses(Collection<Stmt> stmts) {
+    return stmts.stream()
+        .flatMap(stmt -> stmt.getUses().map(value -> (Pair.of(value, stmt))))
+        .collect(
+            Collectors.groupingBy(
+                Pair::getLeft, Collectors.mapping(Pair::getRight, Collectors.toList())));
   }
 }
