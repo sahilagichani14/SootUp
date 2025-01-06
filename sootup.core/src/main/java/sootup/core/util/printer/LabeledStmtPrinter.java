@@ -115,9 +115,9 @@ public abstract class LabeledStmtPrinter extends AbstractStmtPrinter {
 
   @Nonnull
   public List<Stmt> getStmts(@Nonnull StmtGraph<?> stmtGraph, List<Trap> traps) {
-    final Collection<Stmt> targetStmtsOfBranches = getLabeledStmts(stmtGraph, traps);
+    final Collection<Stmt> labeledStmts = getLabeledStmts(stmtGraph, traps);
 
-    final int maxEstimatedSize = targetStmtsOfBranches.size() + traps.size() * 3;
+    final int maxEstimatedSize = labeledStmts.size() + traps.size() * 3;
     labels = new HashMap<>(maxEstimatedSize, 1);
     references = new HashMap<>(maxEstimatedSize, 1);
 
@@ -136,7 +136,7 @@ public abstract class LabeledStmtPrinter extends AbstractStmtPrinter {
     // Build labelStmts and refStmts -> is stmt head of a block (as its a branch target/trapHandler
     // or is the begin of a trap-range) or does it mark the end of a trap range
     // does it need a label
-    for (Stmt stmt : targetStmtsOfBranches) {
+    for (Stmt stmt : labeledStmts) {
       if (trapStmts.contains(stmt) || stmtGraph.isStmtBranchTarget(stmt)) {
         labelStmts.add(stmt);
       } else {
@@ -166,7 +166,7 @@ public abstract class LabeledStmtPrinter extends AbstractStmtPrinter {
     }
 
     // add Nop Stmt to Jimple just for serialization
-    for (Stmt s : targetStmtsOfBranches) {
+    for (Stmt s : labeledStmts) {
       if (trapStmts.contains(s) && s instanceof JNopStmt) {
         linearizedStmtGraph.add(s);
         labels.put(s, String.format(formatString, ++labelCount));

@@ -47,7 +47,7 @@ class BlockGraphIteratorAndTrapAggregator extends BlockGraphIterator {
   @Nonnull private final List<Trap> collectedTraps = new ArrayList<>();
 
   Map<ClassType, Stmt> activeTraps = new HashMap<>();
-  BasicBlock<?> lastIteratedBlock; // dummy value to remove n-1 unnecessary null-checks
+  BasicBlock<?> lastIteratedBlock;
   JNopStmt lastStmt = null;
 
   /*
