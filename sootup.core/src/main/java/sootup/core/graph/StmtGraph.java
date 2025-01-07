@@ -29,7 +29,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-
 import sootup.core.jimple.basic.Trap;
 import sootup.core.jimple.common.ref.IdentityRef;
 import sootup.core.jimple.common.ref.JCaughtExceptionRef;
