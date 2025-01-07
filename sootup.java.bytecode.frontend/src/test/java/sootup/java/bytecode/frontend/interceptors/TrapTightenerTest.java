@@ -134,7 +134,8 @@ public class TrapTightenerTest {
 
     List<Trap> excepted = new ArrayList<>();
     excepted.add(trap3);
-    List<Trap> actual = briefStmtPrinter.buildTraps(stmtGraph);
+    briefStmtPrinter.buildTraps(stmtGraph);
+    List<Trap> actual = briefStmtPrinter.getTraps();
     AssertUtils.assertTrapsEquiv(excepted, actual);
   }
   /**
@@ -175,7 +176,8 @@ public class TrapTightenerTest {
 
     List<Trap> excepted = new ArrayList<>();
     excepted.add(trap1);
-    List<Trap> actual = briefStmtPrinter.buildTraps(stmtGraph);
+    briefStmtPrinter.buildTraps(stmtGraph);
+    List<Trap> actual = briefStmtPrinter.getTraps();
     AssertUtils.assertTrapsEquiv(excepted, actual);
   }
 

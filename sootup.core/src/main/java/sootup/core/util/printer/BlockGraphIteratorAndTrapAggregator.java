@@ -46,9 +46,9 @@ class BlockGraphIteratorAndTrapAggregator extends BlockGraphIterator {
 
   @Nonnull private final List<Trap> collectedTraps = new ArrayList<>();
 
-  Map<ClassType, Stmt> activeTraps = new HashMap<>();
-  BasicBlock<?> lastIteratedBlock;
-  JNopStmt lastStmt = null;
+  @Nonnull protected final Map<ClassType, Stmt> activeTraps = new HashMap<>();
+  @Nonnull protected BasicBlock<?> lastIteratedBlock;
+  @Nullable protected JNopStmt lastStmt = null;
 
   /*
    * @param dummyBlock is just an empty instantiation of type V - as neither BasicBlock nor V instantiable we need a concrete object from the using subclass itclass.

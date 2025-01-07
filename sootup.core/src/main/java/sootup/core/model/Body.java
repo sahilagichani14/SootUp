@@ -40,7 +40,6 @@ import sootup.core.jimple.common.ref.JThisRef;
 import sootup.core.jimple.common.stmt.*;
 import sootup.core.signatures.MethodSignature;
 import sootup.core.util.EscapedWriter;
-import sootup.core.util.printer.BriefStmtPrinter;
 import sootup.core.util.printer.JimplePrinter;
 
 /**
@@ -110,17 +109,6 @@ public class Body implements HasPosition {
   /** Returns a backed chain of the locals declared in this Body. */
   public Set<Local> getLocals() {
     return locals;
-  }
-
-  /**
-   * Returns an unmodifiable view of the traps found in this Body. @Deprecated the exceptional flow
-   * information is already integrated into the StmtGraphs BasicBlocks.getExceptionalFlows() -
-   * exists to make porting tools from Soot easier
-   */
-  @Nonnull
-  @Deprecated()
-  public List<Trap> getTraps() {
-    return new BriefStmtPrinter().buildTraps(graph);
   }
 
   /** Return unit containing the \@this-assignment * */

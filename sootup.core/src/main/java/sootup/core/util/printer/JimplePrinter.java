@@ -336,8 +336,7 @@ public class JimplePrinter {
   }
 
   private void printStmts(StmtGraph<?> stmtGraph, LabeledStmtPrinter printer) {
-    final List<Trap> traps = printer.buildTraps(stmtGraph);
-    Iterable<Stmt> linearizedStmtGraph = printer.initializeSootMethod(stmtGraph, traps);
+    Iterable<Stmt> linearizedStmtGraph = printer.initializeSootMethod(stmtGraph);
 
     Stmt previousStmt;
 
@@ -381,7 +380,7 @@ public class JimplePrinter {
 
     // Print out exceptions
     {
-      Iterator<Trap> trapIt = traps.iterator();
+      Iterator<Trap> trapIt = printer.getTraps().iterator();
 
       if (trapIt.hasNext()) {
         printer.newline();

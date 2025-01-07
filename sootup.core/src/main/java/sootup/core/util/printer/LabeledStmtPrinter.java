@@ -47,6 +47,8 @@ public abstract class LabeledStmtPrinter extends AbstractStmtPrinter {
    */
   protected Map<Stmt, String> references;
 
+  private List<Trap> traps;
+
   public LabeledStmtPrinter() {}
 
   public Map<Stmt, String> getLabels() {
@@ -107,15 +109,10 @@ public abstract class LabeledStmtPrinter extends AbstractStmtPrinter {
    *
    * @return the linearized StmtGraph
    */
-  public Iterable<Stmt> initializeSootMethod(@Nonnull StmtGraph<?> stmtGraph, List<Trap> traps) {
+  public Iterable<Stmt> initializeSootMethod(@Nonnull StmtGraph<?> stmtGraph) {
     this.graph = stmtGraph;
-    final List<Stmt> linearizedStmtGraph = getStmts(stmtGraph, traps);
-    return linearizedStmtGraph;
-  }
-
-  @Nonnull
-  public List<Stmt> getStmts(@Nonnull StmtGraph<?> stmtGraph, List<Trap> traps) {
-    final Collection<Stmt> labeledStmts = getLabeledStmts(stmtGraph, traps);
+    JNopStmt needsNopAtEnd = buildTraps(stmtGraph);
+    final Collection<Stmt> labeledStmts = getLabeledStmts(stmtGraph, this.traps);
 
     final int maxEstimatedSize = labeledStmts.size() + traps.size() * 3;
     labels = new HashMap<>(maxEstimatedSize, 1);
@@ -165,12 +162,9 @@ public abstract class LabeledStmtPrinter extends AbstractStmtPrinter {
       }
     }
 
-    // add Nop Stmt to Jimple just for serialization
-    for (Stmt s : labeledStmts) {
-      if (trapStmts.contains(s) && s instanceof JNopStmt) {
-        linearizedStmtGraph.add(s);
-        labels.put(s, String.format(formatString, ++labelCount));
-      }
+    if (needsNopAtEnd != null) {
+      linearizedStmtGraph.add(needsNopAtEnd);
+      labels.put(needsNopAtEnd, String.format(formatString, ++labelCount));
     }
 
     return linearizedStmtGraph;
@@ -214,7 +208,7 @@ public abstract class LabeledStmtPrinter extends AbstractStmtPrinter {
    * BasicBlock.getExceptionalSuccessor()
    */
   /** hint: little expensive getter - its more of a build/create - currently no overlaps */
-  public List<Trap> buildTraps(StmtGraph stmtGraph) {
+  public JNopStmt buildTraps(StmtGraph stmtGraph) {
     // [ms] try to incorporate it into the serialisation of jimple printing so the other half of
     // iteration information is not wasted..
     BlockGraphIteratorAndTrapAggregator it = new BlockGraphIteratorAndTrapAggregator(stmtGraph);
@@ -229,11 +223,13 @@ public abstract class LabeledStmtPrinter extends AbstractStmtPrinter {
       i++;
     }
     final List<Trap> traps = it.getTraps();
-    if (it.getLastStmt() != null) {
+    boolean b = it.getLastStmt() != null;
+    if (b) {
       stmtsBlockIdx.put(it.getLastStmt(), i);
     }
     traps.sort(getTrapComparator(stmtsBlockIdx));
-    return traps;
+    this.traps = traps;
+    return it.getLastStmt();
   }
 
   /** Comparator which sorts the trap output in getTraps() */
@@ -283,5 +279,9 @@ public abstract class LabeledStmtPrinter extends AbstractStmtPrinter {
     }
 
     return stmtList;
+  }
+
+  public List<Trap> getTraps() {
+    return traps;
   }
 }
