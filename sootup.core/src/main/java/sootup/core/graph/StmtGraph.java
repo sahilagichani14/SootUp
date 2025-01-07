@@ -29,6 +29,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+
+import sootup.core.jimple.basic.Trap;
 import sootup.core.jimple.common.ref.IdentityRef;
 import sootup.core.jimple.common.ref.JCaughtExceptionRef;
 import sootup.core.jimple.common.stmt.*;
@@ -356,7 +358,11 @@ public abstract class StmtGraph<V extends BasicBlock<V>> implements Iterable<Stm
       return false;
     }
 
-    if (!briefStmtPrinter.buildTraps(this).equals(briefStmtPrinter.buildTraps(otherGraph))) {
+    briefStmtPrinter.buildTraps(this);
+    List<Trap> currTraps = briefStmtPrinter.getTraps();
+    briefStmtPrinter.buildTraps(otherGraph);
+    List<Trap> otherGraphTraps = briefStmtPrinter.getTraps();
+    if (!currTraps.equals(otherGraphTraps)) {
       return false;
     }
 
