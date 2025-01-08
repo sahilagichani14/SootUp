@@ -66,9 +66,6 @@ import sootup.core.util.printer.JimplePrinter;
  */
 public abstract class StmtGraph<V extends BasicBlock<V>> implements Iterable<Stmt> {
 
-  public final JimplePrinter jimplePrinter = new JimplePrinter();
-  public final BriefStmtPrinter briefStmtPrinter = new BriefStmtPrinter();
-
   public abstract Stmt getStartingStmt();
 
   public abstract BasicBlock<?> getStartingStmtBlock();
@@ -357,10 +354,8 @@ public abstract class StmtGraph<V extends BasicBlock<V>> implements Iterable<Stm
       return false;
     }
 
-    briefStmtPrinter.buildTraps(this);
-    List<Trap> currTraps = briefStmtPrinter.getTraps();
-    briefStmtPrinter.buildTraps(otherGraph);
-    List<Trap> otherGraphTraps = briefStmtPrinter.getTraps();
+    List<Trap> currTraps = new BriefStmtPrinter(this).getTraps();
+    List<Trap> otherGraphTraps = new BriefStmtPrinter(otherGraph).getTraps();
     if (!currTraps.equals(otherGraphTraps)) {
       return false;
     }
@@ -453,7 +448,7 @@ public abstract class StmtGraph<V extends BasicBlock<V>> implements Iterable<Stm
   public String toString() {
     StringWriter writer = new StringWriter();
     try (PrintWriter writerOut = new PrintWriter(new EscapedWriter(writer))) {
-      jimplePrinter.printTo(this, writerOut);
+      new JimplePrinter().printTo(this, writerOut);
     }
     return writer.toString();
   }
