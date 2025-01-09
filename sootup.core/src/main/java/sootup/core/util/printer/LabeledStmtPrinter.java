@@ -113,10 +113,10 @@ public abstract class LabeledStmtPrinter extends AbstractStmtPrinter {
 
   @Nonnull
   public List<Stmt> getStmts(@Nonnull StmtGraph<?> stmtGraph) {
-    final Collection<Stmt> labeledStmts = stmtGraph.getLabeledStmts();
+    final Collection<Stmt> targetStmtsOfBranches = stmtGraph.getLabeledStmts();
     final List<Trap> traps = stmtGraph.buildTraps();
 
-    final int maxEstimatedSize = labeledStmts.size() + traps.size() * 3;
+    final int maxEstimatedSize = targetStmtsOfBranches.size() + traps.size() * 3;
     labels = new HashMap<>(maxEstimatedSize, 1);
     references = new HashMap<>(maxEstimatedSize, 1);
 
@@ -135,7 +135,7 @@ public abstract class LabeledStmtPrinter extends AbstractStmtPrinter {
     // Build labelStmts and refStmts -> is stmt head of a block (as its a branch target/trapHandler
     // or is the begin of a trap-range) or does it mark the end of a trap range
     // does it need a label
-    for (Stmt stmt : labeledStmts) {
+    for (Stmt stmt : targetStmtsOfBranches) {
       if (stmtGraph.isStmtBranchTarget(stmt) || trapStmts.contains(stmt)) {
         labelStmts.add(stmt);
       } else {
