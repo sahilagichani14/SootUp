@@ -22,7 +22,6 @@ package sootup.core.graph;
  * #L%
  */
 
-import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.Lists;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -910,6 +909,9 @@ public class MutableBlockStmtGraph extends MutableStmtGraph {
       blockOfRemovedStmt.clearPredecessorBlocks();
       blockOfRemovedStmt.clearSuccessorBlocks();
       blockOfRemovedStmt.clearExceptionalSuccessorBlocks();
+
+      clearBlockFromAllExceptionalBlocks(blockOfRemovedStmt);
+
       blockOfRemovedStmt.removeStmt(blockOfRemovedStmtPair.getLeft());
       blocks.remove(blockOfRemovedStmt);
 
@@ -977,6 +979,27 @@ public class MutableBlockStmtGraph extends MutableStmtGraph {
       }
     }
     stmtToBlock.remove(stmt);
+  }
+
+  public void clearBlockFromAllExceptionalBlocks(MutableBasicBlock blockOfRemovedStmt) {
+    // Remove blockOfRemovedStmt from all exceptionalBlocks in MutableBlockStmtGraph
+    for (Iterator<MutableBasicBlock> iterator = blocks.iterator(); iterator.hasNext(); ) {
+      MutableBasicBlock block = iterator.next();
+      Collection<MutableBasicBlock> blockExceptionalSuccessors =
+          block.getExceptionalSuccessors().values();
+      if (!blockExceptionalSuccessors.isEmpty()) {
+        for (MutableBasicBlock exceptionalBlock : blockExceptionalSuccessors) {
+          List<MutableBasicBlock> exceptionalBlockSuccessors = exceptionalBlock.getSuccessors();
+          List<MutableBasicBlock> exceptionalBlockPredecessors = exceptionalBlock.getPredecessors();
+          if (exceptionalBlockPredecessors.contains(blockOfRemovedStmt)) {
+            exceptionalBlock.removePredecessorBlock(blockOfRemovedStmt);
+          }
+          if (exceptionalBlockSuccessors.contains(blockOfRemovedStmt)) {
+            exceptionalBlock.removeFromSuccessorBlocks(blockOfRemovedStmt);
+          }
+        }
+      }
+    }
   }
 
   @Override
@@ -1606,39 +1629,6 @@ public class MutableBlockStmtGraph extends MutableStmtGraph {
       List<Stmt> stmtsA = blockA.getStmts();
       return stmtsA.get(blockAPair.getLeft() + 1) == target;
     }
-  }
-
-  /** Comparator which sorts the trap output in getTraps() */
-  public Comparator<Trap> getTrapComparator(@Nonnull Map<Stmt, Integer> stmtsBlockIdx) {
-    return (a, b) ->
-        ComparisonChain.start()
-            .compare(stmtsBlockIdx.get(a.getBeginStmt()), stmtsBlockIdx.get(b.getBeginStmt()))
-            .compare(stmtsBlockIdx.get(a.getEndStmt()), stmtsBlockIdx.get(b.getEndStmt()))
-            // [ms] would be nice to have the traps ordered by exception hierarchy as well
-            .compare(a.getExceptionType().toString(), b.getExceptionType().toString())
-            .result();
-  }
-
-  /** hint: little expensive getter - its more of a build/create - currently no overlaps */
-  @Override
-  public List<Trap> buildTraps() {
-    // [ms] try to incorporate it into the serialisation of jimple printing so the other half of
-    // iteration information is not wasted..
-    BlockGraphIteratorAndTrapAggregator it =
-        new BlockGraphIteratorAndTrapAggregator(new MutableBasicBlockImpl());
-    // it.getTraps() is valid/completely build when the iterator is done.
-    Map<Stmt, Integer> stmtsBlockIdx = new IdentityHashMap<>();
-    int i = 0;
-    // collect BlockIdx positions to sort the traps according to the numbering
-    while (it.hasNext()) {
-      final BasicBlock<?> nextBlock = it.next();
-      stmtsBlockIdx.put(nextBlock.getHead(), i);
-      stmtsBlockIdx.put(nextBlock.getTail(), i);
-      i++;
-    }
-    final List<Trap> traps = it.getTraps();
-    traps.sort(getTrapComparator(stmtsBlockIdx));
-    return traps;
   }
 
   @Override
