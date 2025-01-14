@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 import javax.annotation.Nonnull;
 
-public class PostOrderBlockTraversal implements BlockTraversal {
+public class PostOrderBlockTraversal implements BlockTraversalStrategy {
 
   private final BasicBlock<?> startNode;
 
@@ -47,12 +47,11 @@ public class PostOrderBlockTraversal implements BlockTraversal {
     return new PostOrderBlockIterator(startNode);
   }
 
+  @Override
   @Nonnull
-  public static List<BasicBlock<?>> getBlocksSorted(StmtGraph<?> cfg) {
+  public List<BasicBlock<?>> getBlocksSorted() {
     return StreamSupport.stream(
-            Spliterators.spliteratorUnknownSize(
-                new PostOrderBlockTraversal(cfg).iterator(), Spliterator.ORDERED),
-            false)
+            Spliterators.spliteratorUnknownSize(this.iterator(), Spliterator.ORDERED), false)
         .collect(Collectors.toList());
   }
 }

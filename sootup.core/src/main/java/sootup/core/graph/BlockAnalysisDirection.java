@@ -37,7 +37,8 @@ public enum BlockAnalysisDirection {
     @Nonnull
     @Override
     List<BasicBlock<?>> getSortedBlocks(StmtGraph<?> blockGraph) {
-      return Collections.unmodifiableList(PostOrderBlockTraversal.getBlocksSorted(blockGraph));
+      PostOrderBlockTraversal traversal = new PostOrderBlockTraversal(blockGraph);
+      return Collections.unmodifiableList(traversal.getBlocksSorted());
     }
   },
   REVERSEPOSTORDERFORWARD {

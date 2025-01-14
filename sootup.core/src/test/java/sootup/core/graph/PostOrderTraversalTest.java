@@ -26,7 +26,8 @@ public class PostOrderTraversalTest {
       i++;
     }
 
-    List<BasicBlock<?>> postOrderBlocks = PostOrderBlockTraversal.getBlocksSorted(graph);
+    PostOrderBlockTraversal traversal = new PostOrderBlockTraversal(graph);
+    List<BasicBlock<?>> postOrderBlocks = traversal.getBlocksSorted();
     List<Integer> PO =
         postOrderBlocks.stream().map(b -> blockToId.get(b)).collect(Collectors.toList());
 
@@ -50,7 +51,8 @@ public class PostOrderTraversalTest {
       i++;
     }
 
-    List<BasicBlock<?>> postOrderBlocks = PostOrderBlockTraversal.getBlocksSorted(graph);
+    PostOrderBlockTraversal traversal = new PostOrderBlockTraversal(graph);
+    List<BasicBlock<?>> postOrderBlocks = traversal.getBlocksSorted();
     List<Integer> PO =
         postOrderBlocks.stream().map(b -> blockToId.get(b)).collect(Collectors.toList());
 

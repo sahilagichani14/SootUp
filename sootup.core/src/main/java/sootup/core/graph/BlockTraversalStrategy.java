@@ -20,4 +20,15 @@ package sootup.core.graph;
  * <http://www.gnu.org/licenses/lgpl-2.1.html>.
  * #L%
  */
-public interface BlockTraversal {}
+
+import java.util.List;
+
+/** Strategy used to traverse a StmtGraph */
+public interface BlockTraversalStrategy {
+  /**
+   * This method returns a list of Blocks ordered by the traversal sequence.
+   *
+   * @return a list of Blocks in traversal order
+   */
+  public List<BasicBlock<?>> getBlocksSorted();
+}
