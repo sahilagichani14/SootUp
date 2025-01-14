@@ -72,12 +72,22 @@ public abstract class MutableStmtGraph extends StmtGraph<MutableBasicBlock> {
       @Nonnull List<FallsThroughStmt> stmts,
       @Nonnull Map<ClassType, Stmt> exceptionMap);
 
+  public abstract BasicBlock<?> insertAfter(
+      @Nonnull Stmt afterStmt,
+      @Nonnull List<FallsThroughStmt> stmts,
+      @Nonnull Map<ClassType, Stmt> exceptionMap);
+
   /**
    * inserts the "newStmt" before the position of "beforeStmt" i.e.
    * newStmt.successors().contains(beforeStmt) will be true
    */
   public BasicBlock<?> insertBefore(@Nonnull Stmt beforeStmt, @Nonnull FallsThroughStmt newStmt) {
     return insertBefore(beforeStmt, Collections.singletonList(newStmt), Collections.emptyMap());
+  }
+
+  /** inserts the "newStmt" after the position of "afterStmt" */
+  public BasicBlock<?> insertAfter(@Nonnull Stmt afterStmt, @Nonnull FallsThroughStmt newStmt) {
+    return insertAfter(afterStmt, Collections.singletonList(newStmt), Collections.emptyMap());
   }
 
   /** removes "stmt" from the StmtGraph */
