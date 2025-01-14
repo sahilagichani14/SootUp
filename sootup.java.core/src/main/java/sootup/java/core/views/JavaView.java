@@ -88,9 +88,7 @@ public class JavaView extends AbstractView {
     Stream<JavaSootClass> resolvedClasses =
         inputLocations.stream()
             .flatMap(location -> location.getClassSources(this).stream())
-            .map(this::buildClassFrom)
-            .filter(Optional::isPresent)
-            .map(Optional::get);
+            .map(this::buildClassFrom);
 
     isFullyResolved = true;
 
@@ -107,7 +105,7 @@ public class JavaView extends AbstractView {
     }
 
     Optional<JavaSootClassSource> abstractClass = getClassSource(type);
-    return abstractClass.flatMap(this::buildClassFrom);
+    return abstractClass.map(this::buildClassFrom);
   }
 
   @Nonnull
@@ -155,7 +153,7 @@ public class JavaView extends AbstractView {
   }
 
   @Nonnull
-  protected synchronized Optional<JavaSootClass> buildClassFrom(AbstractClassSource classSource) {
+  protected synchronized JavaSootClass buildClassFrom(AbstractClassSource classSource) {
 
     ClassType classType = classSource.getClassType();
     JavaSootClass theClass;
@@ -167,6 +165,6 @@ public class JavaView extends AbstractView {
               classSource.buildClass(classSource.getAnalysisInputLocation().getSourceType());
       cache.putClass(classType, theClass);
     }
-    return Optional.of(theClass);
+    return theClass;
   }
 }
