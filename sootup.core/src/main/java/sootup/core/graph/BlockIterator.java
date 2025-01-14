@@ -22,4 +22,5 @@ package sootup.core.graph;
  */
 import java.util.Iterator;
 
+/** Iterator used to visit each Block in a StmtGraph. */
 public interface BlockIterator extends Iterator<BasicBlock<?>> {}
