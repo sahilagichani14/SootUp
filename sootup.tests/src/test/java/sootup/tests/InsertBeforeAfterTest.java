@@ -10,7 +10,6 @@ import sootup.core.graph.BasicBlock;
 import sootup.core.graph.MutableBlockStmtGraph;
 import sootup.core.jimple.basic.Local;
 import sootup.core.jimple.basic.StmtPositionInfo;
-import sootup.core.jimple.basic.Trap;
 import sootup.core.jimple.common.constant.IntConstant;
 import sootup.core.jimple.common.stmt.FallsThroughStmt;
 import sootup.core.jimple.common.stmt.Stmt;
@@ -140,9 +139,7 @@ public class InsertBeforeAfterTest {
         break;
       }
     }
-    Trap trap = graph.buildTraps().get(0);
-    Map<ClassType, Stmt> trapMap =
-        Collections.singletonMap(trap.getExceptionType(), trap.getHandlerStmt());
+    Map<ClassType, Stmt> trapMap = graph.exceptionalSuccessors(beforeStmt);
     BasicBlock<?> newBlock =
         graph.insertBefore(beforeStmt, Arrays.asList(assign1tol5, assign2tol6), trapMap);
 
@@ -220,9 +217,7 @@ public class InsertBeforeAfterTest {
     Set<Local> newLocals = new HashSet<>(locals);
     newLocals.add(l5);
     newLocals.add(l6);
-    Trap trap = graph.buildTraps().get(0);
-    Map<ClassType, Stmt> trapMap =
-        Collections.singletonMap(trap.getExceptionType(), trap.getHandlerStmt());
+    Map<ClassType, Stmt> trapMap = graph.exceptionalSuccessors(beforeStmt);
     BasicBlock<?> newBlock =
         graph.insertBefore(beforeStmt, Arrays.asList(assign1tol5, assign2tol6), trapMap);
     Body.BodyBuilder builder = Body.builder(graph);
@@ -449,9 +444,7 @@ public class InsertBeforeAfterTest {
         break;
       }
     }
-    Trap trap = graph.buildTraps().get(0);
-    Map<ClassType, Stmt> trapMap =
-        Collections.singletonMap(trap.getExceptionType(), trap.getHandlerStmt());
+    Map<ClassType, Stmt> trapMap = graph.exceptionalSuccessors(afterStmt);
 
     Set<Local> newLocals = new HashSet<>(locals);
     newLocals.add(l5);
@@ -530,9 +523,7 @@ public class InsertBeforeAfterTest {
     Set<Local> newLocals = new HashSet<>(locals);
     newLocals.add(l5);
     newLocals.add(l6);
-    Trap trap = graph.buildTraps().get(0);
-    Map<ClassType, Stmt> trapMap =
-        Collections.singletonMap(trap.getExceptionType(), trap.getHandlerStmt());
+    Map<ClassType, Stmt> trapMap = graph.exceptionalSuccessors(afterStmt);
     BasicBlock<?> newBlock =
         graph.insertAfter(afterStmt, Arrays.asList(assign1tol5, assign2tol6), trapMap);
     Body.BodyBuilder builder = Body.builder(graph);
