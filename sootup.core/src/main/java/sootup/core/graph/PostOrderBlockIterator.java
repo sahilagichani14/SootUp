@@ -24,6 +24,7 @@ package sootup.core.graph;
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public class PostOrderBlockIterator implements BlockIterator {
 
@@ -45,10 +46,8 @@ public class PostOrderBlockIterator implements BlockIterator {
   }
 
   @Override
+  @Nullable
   public BasicBlock<?> next() {
-    if (!hasNext()) {
-      throw new NoSuchElementException("There is no more block.");
-    }
     while (!stack.isEmpty()) {
       Frame frame = stack.peek();
       if (frame.succIterator.hasNext()) {

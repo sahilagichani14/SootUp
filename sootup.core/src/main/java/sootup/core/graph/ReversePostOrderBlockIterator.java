@@ -25,6 +25,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public class ReversePostOrderBlockIterator implements BlockIterator {
   private List<BasicBlock<?>> blocks;
@@ -46,9 +47,10 @@ public class ReversePostOrderBlockIterator implements BlockIterator {
   }
 
   @Override
+  @Nullable
   public BasicBlock<?> next() {
     if (!hasNext()) {
-      throw new NoSuchElementException("There is no more block.");
+      return null;
     }
     i++;
     return blocks.get(i - 1);
