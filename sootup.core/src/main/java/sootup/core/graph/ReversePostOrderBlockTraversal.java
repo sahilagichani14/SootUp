@@ -27,15 +27,13 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 import javax.annotation.Nonnull;
 
-public class ReversePostOrderBlockTraversal {
-  private final BasicBlock<?> startNode;
+/** A strategy to traverse a StmtGraph in reverse post-order. */
+public class ReversePostOrderBlockTraversal implements BlockTraversalStrategy {
+
+  private final StmtGraph<?> cfg;
 
   public ReversePostOrderBlockTraversal(StmtGraph<?> cfg) {
-    startNode = cfg.getStartingStmtBlock();
-  }
-
-  public ReversePostOrderBlockTraversal(BasicBlock<?> startNode) {
-    this.startNode = startNode;
+    this.cfg = cfg;
   }
 
   @Nonnull
@@ -44,15 +42,17 @@ public class ReversePostOrderBlockTraversal {
   }
 
   @Nonnull
+  @Override
   public BlockIterator iterator() {
-    return new ReversePostOrderBlockIterator(startNode);
+    return new ReversePostOrderBlockIterator(this.cfg.getStartingStmtBlock());
   }
 
+  @Override
   @Nonnull
-  public static List<BasicBlock<?>> getBlocksSorted(StmtGraph<?> cfg) {
+  public List<BasicBlock<?>> getBlocksSorted() {
     return StreamSupport.stream(
             Spliterators.spliteratorUnknownSize(
-                new ReversePostOrderBlockTraversal(cfg).iterator(), Spliterator.ORDERED),
+                new ReversePostOrderBlockTraversal(this.cfg).iterator(), Spliterator.ORDERED),
             false)
         .collect(Collectors.toList());
   }

@@ -27,6 +27,7 @@ import java.util.stream.StreamSupport;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+/** A block iterator that iterates through the blocks of a StmtGraph in reverse post-order. */
 public class ReversePostOrderBlockIterator implements BlockIterator {
   private List<BasicBlock<?>> blocks;
   private int i = 0;

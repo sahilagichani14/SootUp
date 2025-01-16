@@ -23,8 +23,15 @@ package sootup.core.graph;
 
 import java.util.List;
 
-/** Strategy used to traverse a StmtGraph */
+/** An interface for defining a strategy to traverse a StmtGraph. */
 public interface BlockTraversalStrategy {
+
+  /**
+   * This method provides an iterator to traverse a StmtGraph according to the defined strategy.
+   *
+   * @return an iterator for traversing StmtGraph
+   */
+  public BlockIterator iterator();
   /**
    * This method returns a list of Blocks ordered by the traversal sequence.
    *

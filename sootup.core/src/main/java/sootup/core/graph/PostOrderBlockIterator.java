@@ -26,6 +26,7 @@ import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+/** A block iterator that iterates through the blocks of a StmtGraph in post-order. */
 public class PostOrderBlockIterator implements BlockIterator {
 
   private final Stack<Frame> stack = new Stack<>();

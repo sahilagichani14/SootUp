@@ -69,7 +69,7 @@ public class TestGraphGenerator {
   }
 
   // a control flow graph without returnStmt, because simulate the situation in the paper
-  // if doesn't pass the validation, please add a return stmt after ifl2l50
+  // if it doesn't pass the validation, please add a return stmt after ifl2l50
   public MutableBlockStmtGraph createStmtGraph2() {
     MutableBlockStmtGraph graph = new MutableBlockStmtGraph();
 

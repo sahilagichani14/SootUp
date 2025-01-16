@@ -27,8 +27,9 @@ public class ReversePostOrderTraversalTest {
       i++;
     }
 
-    List<BasicBlock<?>> reversePostOrderBlocks =
-        ReversePostOrderBlockTraversal.getBlocksSorted(graph);
+    ReversePostOrderBlockTraversal reversePostOrderBlockTraversal =
+        new ReversePostOrderBlockTraversal(graph);
+    List<BasicBlock<?>> reversePostOrderBlocks = reversePostOrderBlockTraversal.getBlocksSorted();
     List<Integer> RPO =
         reversePostOrderBlocks.stream().map(b -> blockToId.get(b)).collect(Collectors.toList());
 
@@ -52,8 +53,9 @@ public class ReversePostOrderTraversalTest {
       i++;
     }
 
-    List<BasicBlock<?>> reversePostOrderBlocks =
-        ReversePostOrderBlockTraversal.getBlocksSorted(graph);
+    ReversePostOrderBlockTraversal reversePostOrderBlockTraversal =
+        new ReversePostOrderBlockTraversal(graph);
+    List<BasicBlock<?>> reversePostOrderBlocks = reversePostOrderBlockTraversal.getBlocksSorted();
     List<Integer> RPO =
         reversePostOrderBlocks.stream().map(b -> blocksToId.get(b)).collect(Collectors.toList());
 

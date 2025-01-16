@@ -25,12 +25,17 @@ import java.util.Collections;
 import java.util.List;
 import javax.annotation.Nonnull;
 
+/**
+ * This enum class is used to specify the direction of block analysis. Every enum direction name
+ * consists two parts: Block Order and Analysis Direction. eg: POSTORDERBACKWARD indicates that the
+ * sorted blocks are ordered in post-order(POSTORDER) and the analysis direction is from root to
+ * leaves (BACKWARD).
+ */
 public enum BlockAnalysisDirection {
   POSTORDERBACKWARD {
     @Override
     @Nonnull
     List<BasicBlock<?>> getPredecessors(BasicBlock<?> block) {
-      // todo: Blocks in PostOrderBackward contain no exceptional blocks!!
       return (List<BasicBlock<?>>) block.getSuccessors();
     }
 
@@ -51,8 +56,8 @@ public enum BlockAnalysisDirection {
     @Nonnull
     @Override
     List<BasicBlock<?>> getSortedBlocks(StmtGraph<?> blockGraph) {
-      return Collections.unmodifiableList(
-          ReversePostOrderBlockTraversal.getBlocksSorted(blockGraph));
+      ReversePostOrderBlockTraversal traversal = new ReversePostOrderBlockTraversal(blockGraph);
+      return Collections.unmodifiableList(traversal.getBlocksSorted());
     }
   };
 

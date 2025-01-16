@@ -487,7 +487,9 @@ public class MutableBlockStmtGraph extends MutableStmtGraph {
 
   @Nonnull
   public List<? extends BasicBlock<?>> getBlocksSorted() {
-    return ReversePostOrderBlockTraversal.getBlocksSorted(this);
+    ReversePostOrderBlockTraversal reversePostOrderBlockTraversal =
+        new ReversePostOrderBlockTraversal(this);
+    return reversePostOrderBlockTraversal.getBlocksSorted();
   }
 
   /**

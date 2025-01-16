@@ -27,24 +27,22 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 import javax.annotation.Nonnull;
 
+/** A strategy to traverse a StmtGraph in post-order. */
 public class PostOrderBlockTraversal implements BlockTraversalStrategy {
 
-  private final BasicBlock<?> startNode;
+  private final StmtGraph<?> cfg;
 
   public PostOrderBlockTraversal(StmtGraph<?> cfg) {
-    startNode = cfg.getStartingStmtBlock();
-  }
-
-  public PostOrderBlockTraversal(BasicBlock<?> startNode) {
-    this.startNode = startNode;
+    this.cfg = cfg;
   }
 
   public Iterable<BasicBlock<?>> getOrder() {
     return this::iterator;
   }
 
+  @Override
   public BlockIterator iterator() {
-    return new PostOrderBlockIterator(startNode);
+    return new PostOrderBlockIterator(this.cfg.getStartingStmtBlock());
   }
 
   @Override
