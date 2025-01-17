@@ -1,5 +1,4 @@
 package sootup.core.graph;
-
 /*-
  * #%L
  * Soot - a J*va Optimization Framework
@@ -26,34 +25,35 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
-/** A strategy to traverse a StmtGraph in reverse post-order. */
-public class ReversePostOrderBlockTraversal implements BlockTraversalStrategy {
+/** A block iterator that iterates through the blocks of a StmtGraph in reverse post-order. */
+public class ReversePostOrderBlockIterator implements BlockIterator {
+  private List<BasicBlock<?>> blocks;
+  private int i = 0;
 
-  private final StmtGraph<?> cfg;
-
-  public ReversePostOrderBlockTraversal(StmtGraph<?> cfg) {
-    this.cfg = cfg;
-  }
-
-  @Nonnull
-  public Iterable<BasicBlock<?>> getOrder() {
-    return this::iterator;
-  }
-
-  @Nonnull
-  @Override
-  public BlockIterator iterator() {
-    return new ReversePostOrderBlockIterator(this.cfg.getStartingStmtBlock());
+  public ReversePostOrderBlockIterator(@Nonnull BasicBlock<?> startNode) {
+    blocks =
+        StreamSupport.stream(
+                Spliterators.spliteratorUnknownSize(
+                    new PostOrderBlockIterator(startNode), Spliterator.ORDERED),
+                false)
+            .collect(Collectors.toList());
+    Collections.reverse(blocks);
   }
 
   @Override
-  @Nonnull
-  public List<BasicBlock<?>> getBlocksSorted() {
-    return StreamSupport.stream(
-            Spliterators.spliteratorUnknownSize(
-                new ReversePostOrderBlockTraversal(this.cfg).iterator(), Spliterator.ORDERED),
-            false)
-        .collect(Collectors.toList());
+  public boolean hasNext() {
+    return i < blocks.size();
+  }
+
+  @Override
+  @Nullable
+  public BasicBlock<?> next() {
+    if (!hasNext()) {
+      return null;
+    }
+    i++;
+    return blocks.get(i - 1);
   }
 }

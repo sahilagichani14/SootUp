@@ -24,6 +24,7 @@ package sootup.core.graph;
 
 import com.google.common.collect.Lists;
 import java.util.*;
+import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.apache.commons.lang3.tuple.MutablePair;
@@ -486,7 +487,9 @@ public class MutableBlockStmtGraph extends MutableStmtGraph {
 
   @Nonnull
   public List<? extends BasicBlock<?>> getBlocksSorted() {
-    return ReversePostOrderBlockTraversal.getBlocksSorted(this);
+    ReversePostOrderBlockTraversal reversePostOrderBlockTraversal =
+        new ReversePostOrderBlockTraversal(this);
+    return reversePostOrderBlockTraversal.getBlocksSorted();
   }
 
   /**
@@ -1514,6 +1517,12 @@ public class MutableBlockStmtGraph extends MutableStmtGraph {
   @Nullable
   public BasicBlock<?> getStartingStmtBlock() {
     return getBlockOf(startingStmt);
+  }
+
+  @Override
+  @Nonnull
+  public List<BasicBlock<?>> getTailStmtBlocks() {
+    return getTails().stream().map(stmt -> getBlockOf(stmt)).collect(Collectors.toList());
   }
 
   @Override

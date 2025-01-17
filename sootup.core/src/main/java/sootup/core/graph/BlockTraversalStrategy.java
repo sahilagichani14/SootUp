@@ -1,5 +1,4 @@
 package sootup.core.graph;
-
 /*-
  * #%L
  * Soot - a J*va Optimization Framework
@@ -22,9 +21,21 @@ package sootup.core.graph;
  * #L%
  */
 
-public class PostDominanceFinder extends DominanceFinder {
+import java.util.List;
 
-  public PostDominanceFinder(StmtGraph<?> blockGraph) {
-    super(blockGraph, BlockAnalysisDirection.POSTORDERBACKWARD);
-  }
+/** An interface for defining a strategy to traverse a StmtGraph. */
+public interface BlockTraversalStrategy {
+
+  /**
+   * This method provides an iterator to traverse a StmtGraph according to the defined strategy.
+   *
+   * @return an iterator for traversing StmtGraph
+   */
+  public BlockIterator iterator();
+  /**
+   * This method returns a list of Blocks ordered by the traversal sequence.
+   *
+   * @return a list of Blocks in traversal order
+   */
+  public List<BasicBlock<?>> getBlocksSorted();
 }
