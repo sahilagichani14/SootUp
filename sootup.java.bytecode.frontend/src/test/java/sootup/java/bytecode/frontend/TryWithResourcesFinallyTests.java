@@ -9,8 +9,8 @@ import org.junit.jupiter.api.Test;
 import sootup.core.inputlocation.AnalysisInputLocation;
 import sootup.core.model.SourceType;
 import sootup.core.signatures.MethodSignature;
+import sootup.java.bytecode.frontend.inputlocation.ClassFileBasedAnalysisInputLocation;
 import sootup.core.util.printer.BriefStmtPrinter;
-import sootup.java.bytecode.frontend.inputlocation.PathBasedAnalysisInputLocation;
 import sootup.java.core.views.JavaView;
 
 @Tag(TestCategories.JAVA_8_CATEGORY)
@@ -21,8 +21,7 @@ public class TryWithResourcesFinallyTests {
   @Test
   public void test() {
     AnalysisInputLocation inputLocation =
-        new PathBasedAnalysisInputLocation.ClassFileBasedAnalysisInputLocation(
-            classFilePath, "", SourceType.Application);
+        new ClassFileBasedAnalysisInputLocation(classFilePath, "", SourceType.Application);
     JavaView view = new JavaView(Collections.singletonList(inputLocation));
 
     MethodSignature methodSignature =

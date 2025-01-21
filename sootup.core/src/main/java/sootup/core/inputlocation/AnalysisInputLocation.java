@@ -21,9 +21,9 @@ package sootup.core.inputlocation;
  * #L%
  */
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import sootup.core.frontend.SootClassSource;
 import sootup.core.model.SootClass;
@@ -61,7 +61,7 @@ public interface AnalysisInputLocation {
    * @return The source entries.
    */
   @Nonnull
-  Collection<? extends SootClassSource> getClassSources(@Nonnull View view);
+  Stream<? extends SootClassSource> getClassSources(@Nonnull View view);
 
   /**
    * If the AnalysisInputLocation is initialized with the SourceType then this method should return
