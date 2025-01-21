@@ -141,7 +141,7 @@ public abstract class PathBasedAnalysisInputLocation implements AnalysisInputLoc
             + "' has to be pointing to the root of a class container, e.g. directory, jar, zip, apk, war etc.");
   }
 
-  /** returns a resource that must be closed! */
+  /** returns a Autocloseable resource that must be closed! */
   @Nonnull
   protected Stream<JavaSootClassSource> walkDirectory(
       @Nonnull Path dirPath,

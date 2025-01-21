@@ -58,7 +58,7 @@ public interface AnalysisInputLocation {
   /**
    * Scan the input location and create ClassSources for every compilation / interpretation unit.
    *
-   * @return The source entries.
+   * @return an Autocloseable resource that must be closed!
    */
   @Nonnull
   Stream<? extends SootClassSource> getClassSources(@Nonnull View view);

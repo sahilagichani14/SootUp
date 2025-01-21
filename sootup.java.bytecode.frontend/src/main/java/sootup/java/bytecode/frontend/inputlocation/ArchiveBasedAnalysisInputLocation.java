@@ -108,6 +108,7 @@ public class ArchiveBasedAnalysisInputLocation extends PathBasedAnalysisInputLoc
     }
   }
 
+  /** returns a Autocloseable resource that must be closed! */
   @Override
   @Nonnull
   public Stream<JavaSootClassSource> getClassSources(@Nonnull View view) {
