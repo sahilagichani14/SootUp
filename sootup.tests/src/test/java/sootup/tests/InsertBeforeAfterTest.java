@@ -17,6 +17,7 @@ import sootup.core.model.Body;
 import sootup.core.model.SourceType;
 import sootup.core.signatures.MethodSignature;
 import sootup.core.types.ClassType;
+import sootup.java.bytecode.frontend.inputlocation.ClassFileBasedAnalysisInputLocation;
 import sootup.java.bytecode.frontend.inputlocation.PathBasedAnalysisInputLocation;
 import sootup.java.core.JavaIdentifierFactory;
 import sootup.java.core.language.JavaJimple;
@@ -35,7 +36,7 @@ public class InsertBeforeAfterTest {
       factory.getMethodSignature(clazzType, "test", "void", Collections.emptyList());
   final Path path = Paths.get(location + "TrapBlockCheck.class");
   PathBasedAnalysisInputLocation inputLocation =
-      new PathBasedAnalysisInputLocation.ClassFileBasedAnalysisInputLocation(
+      new ClassFileBasedAnalysisInputLocation(
           path, "", SourceType.Application, Collections.emptyList());
   JavaView view = new JavaView(inputLocation);
   Body body = view.getMethod(methodSignature).get().getBody();
