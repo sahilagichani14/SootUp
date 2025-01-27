@@ -1,0 +1,8 @@
+[
+{
+  "jar_name": "openam-cassandra-embedded-15.1.3.jar",
+  "exception": "Failed to apply sootup.interceptors.LocalSplitter@328bc067 to <org.openidentityplatform.openam.cassandra.embedded.Server: void run()>",
+  "download_url": "https://repo1.maven.org/maven2/org/openidentityplatform/openam/openam-cassandra-embedded/15.1.3/openam-cassandra-embedded-15.1.3.jar",
+  "failedMethodSignature": "<org.openidentityplatform.openam.cassandra.embedded.Server: void run()>"
+}
+]
