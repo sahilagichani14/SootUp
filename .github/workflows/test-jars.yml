@@ -39,7 +39,7 @@ jobs:
       - name: Upload Metadata
         uses: actions/upload-artifact@v4
         with:
-          name: metadata-${{ matrix.runs-on }}
+          name: metadata
           path: metadata/metadata.json
 
       - name: Setup Java
