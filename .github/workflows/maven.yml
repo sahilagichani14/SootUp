@@ -124,7 +124,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: ${{ always() }}
         with:
-          name: coverage-exec
+          name: coverage-exec-${{ matrix.runs-on }}
           path: |
                   */target/coverage-reports/jacoco-ut-jdk8.exec
 
@@ -170,14 +170,14 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: ${{ always() }}
         with:
-          name: coverage-exec
+          name: coverage-exec-${{ matrix.runs-on }}
           path: |
             */target/coverage-reports/jacoco-ut-jdk9.exec
 
       - uses: actions/upload-artifact@v4
         if: ${{ always() }}
         with:
-          name: test-reports-jdk9
+          name: test-reports-jdk9-${{ matrix.runs-on }}
           path: |
             */target/surefire-reports
 
@@ -216,14 +216,14 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: ${{ always() }}
         with:
-          name: coverage-exec
+          name: coverage-exec-${{ matrix.runs-on }}
           path: |
             */target/coverage-reports/jacoco-ut-integrationtest.exec
 
       - uses: actions/upload-artifact@v4
         if: ${{ always() }}
         with:
-          name: test-reports-integrationtest
+          name: test-reports-integrationtest-${{ matrix.runs-on }}
           path: |
             */target/surefire-reports
 
@@ -268,7 +268,7 @@ jobs:
       - name: upload aggregated coverage artifact
         uses: actions/upload-artifact@v4
         with:
-          name: aggregated-coverage-report
+          name: aggregated-coverage-report-${{ matrix.runs-on }}
           path: sootup.report/target/jacoco-aggregate/
 
       - name: jacoco-badge-generator
