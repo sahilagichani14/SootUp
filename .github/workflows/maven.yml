@@ -254,10 +254,20 @@ jobs:
             **/target/
           key: cache-compilation-${{ github.sha }}
 
-      - name: Download uploaded exec artifacts
-        uses: actions/download-artifact@v3
+      - name: Download uploaded exec artifacts for JDK8
+        uses: actions/download-artifact@v4
         with:
-          name: coverage-exec
+          name: coverage-exec-jdk8
+
+      - name: Download uploaded exec artifacts for JDK9
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-exec-jdk9
+
+      - name: Download uploaded exec artifacts for integration tests
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-exec-integration
 
       - name: merge coverage reports
         run:  mvn -ntp jacoco:merge@merge-results  -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
