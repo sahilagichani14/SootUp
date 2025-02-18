@@ -21,7 +21,6 @@ package sootup.interceptors;
  * #L%
  */
 import java.util.*;
-import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import sootup.core.graph.BasicBlock;
 import sootup.core.graph.MutableBasicBlock;
@@ -75,11 +74,13 @@ public class UnreachableCodeEliminator implements BodyInterceptor {
       }
     }
 
-    List<? extends BasicBlock<?>> unreachableBlocks =
-        allBlocks.stream()
-            .filter(basicBlock -> !reachableNodes.contains(basicBlock))
-            .collect(Collectors.toList());
-    // remove block from blocks
-    unreachableBlocks.forEach(graph::removeBlock);
+    Iterator<? extends BasicBlock<?>> iterator = allBlocks.iterator();
+    while (iterator.hasNext()) {
+      BasicBlock<?> basicBlock = iterator.next();
+      if (!reachableNodes.contains(basicBlock)) {
+        iterator.remove();
+        graph.removeBlock(basicBlock);
+      }
+    }
   }
 }
