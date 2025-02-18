@@ -43,7 +43,7 @@ public class UnreachableCodeEliminator implements BodyInterceptor {
     MutableStmtGraph graph = builder.getStmtGraph();
 
     // Because there is a case in android, where the statement graph will be empty
-    if (graph.getNodes().isEmpty()) {
+    if (graph.getStmts().isEmpty() && graph.getNodes().isEmpty()) {
       return;
     }
 
