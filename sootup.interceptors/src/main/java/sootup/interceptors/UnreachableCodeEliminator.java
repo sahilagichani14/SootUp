@@ -79,10 +79,7 @@ public class UnreachableCodeEliminator implements BodyInterceptor {
         allBlocks.stream()
             .filter(basicBlock -> !reachableNodes.contains(basicBlock))
             .collect(Collectors.toList());
-
     // remove block from blocks
-    for (BasicBlock<?> unreachableBlock : unreachableBlocks) {
-      graph.removeBlock(unreachableBlock);
-    }
+    unreachableBlocks.forEach(graph::removeBlock);
   }
 }
